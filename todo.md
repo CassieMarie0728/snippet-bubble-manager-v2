@@ -1,0 +1,27 @@
+# Project TODO
+
+- [x] Configure dark-first theme colors (crimson red accent, near-black background)
+- [x] Update icon-symbol.tsx with all needed icon mappings
+- [x] Set up 3-tab navigation: Library, Favorites, Settings
+- [x] Create Snippet data model and TypeScript types
+- [x] Build SnippetContext with AsyncStorage persistence
+- [x] Build Library screen with search bar and filter chips
+- [x] Build snippet card component with copy button
+- [x] Build Favorites screen (filtered view)
+- [x] Build Add/Edit Snippet modal screen
+- [x] Build Snippet Detail modal screen
+- [x] Build Settings screen with preferences
+- [x] Implement clipboard copy with expo-clipboard
+- [x] Implement search/filter logic (title, code, language, tags)
+- [x] Implement favorite toggle
+- [x] Implement pin toggle
+- [x] Implement delete with confirmation
+- [x] Add haptic feedback on key interactions
+- [x] Add "Copied!" toast/feedback
+- [x] Add empty states for Library and Favorites
+- [x] Implement settings persistence with AsyncStorage
+- [x] Generate custom app logo
+- [x] Update app.config.ts with branding
+- [x] Export/Import snippets as JSON
+- [x] Clean up debug console.log in theme-provider
+- [x] Write and pass unit tests

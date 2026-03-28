@@ -1,0 +1,368 @@
+import { useCallback, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Alert,
+  Platform,
+  StyleSheet,
+  Switch,
+  Share,
+} from "react-native";
+import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
+import { ScreenContainer } from "@/components/screen-container";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useSnippets } from "@/lib/snippet-context";
+import { useColors } from "@/hooks/use-colors";
+
+export default function SettingsScreen() {
+  const colors = useColors();
+  const { state, updateSettings, importSnippets } = useSnippets();
+  const { settings, snippets } = state;
+
+  const handleToggle = useCallback(
+    (key: "snapToEdge" | "hapticFeedback", value: boolean) => {
+      updateSettings({ [key]: value });
+      if (Platform.OS !== "web" && settings.hapticFeedback) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+    },
+    [updateSettings, settings.hapticFeedback]
+  );
+
+  const handleBubbleSize = useCallback(
+    (size: "small" | "medium" | "large") => {
+      updateSettings({ bubbleSize: size });
+      if (Platform.OS !== "web" && settings.hapticFeedback) {
+        Haptics.selectionAsync();
+      }
+    },
+    [updateSettings, settings.hapticFeedback]
+  );
+
+  const handleDefaultView = useCallback(
+    (view: "pinned" | "recent") => {
+      updateSettings({ defaultView: view });
+      if (Platform.OS !== "web" && settings.hapticFeedback) {
+        Haptics.selectionAsync();
+      }
+    },
+    [updateSettings, settings.hapticFeedback]
+  );
+
+  const handleExport = useCallback(async () => {
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      snippets: snippets.map((s) => ({
+        title: s.title,
+        code: s.code,
+        language: s.language,
+        description: s.description,
+        tags: s.tags,
+        isFavorite: s.isFavorite,
+        isPinned: s.isPinned,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+      })),
+    };
+    const json = JSON.stringify(exportData, null, 2);
+
+    try {
+      if (Platform.OS === "web") {
+        await Clipboard.setStringAsync(json);
+        Alert.alert("Exported", `${snippets.length} snippets copied to clipboard as JSON.`);
+      } else {
+        await Share.share({
+          message: json,
+          title: "Snippet Bubble Manager Export",
+        });
+      }
+    } catch (e) {
+      // Fallback: copy to clipboard
+      await Clipboard.setStringAsync(json);
+      Alert.alert("Exported", `${snippets.length} snippets copied to clipboard as JSON.`);
+    }
+  }, [snippets]);
+
+  const handleImport = useCallback(async () => {
+    try {
+      const text = await Clipboard.getStringAsync();
+      if (!text) {
+        Alert.alert("Empty Clipboard", "Copy your JSON export to clipboard first, then try again.");
+        return;
+      }
+
+      const data = JSON.parse(text);
+      if (!data.snippets || !Array.isArray(data.snippets)) {
+        Alert.alert("Invalid Format", "The clipboard doesn't contain valid snippet export data.");
+        return;
+      }
+
+      const now = Date.now();
+      const imported = data.snippets.map((s: any, i: number) => ({
+        id: `import_${now}_${i}`,
+        title: s.title || "Untitled",
+        code: s.code || "",
+        language: s.language || "",
+        description: s.description || "",
+        tags: Array.isArray(s.tags) ? s.tags : s.tags_csv ? s.tags_csv.split(",").map((t: string) => t.trim()) : [],
+        isFavorite: !!s.isFavorite,
+        isPinned: !!s.isPinned,
+        lastCopiedAt: null,
+        createdAt: s.createdAt || now,
+        updatedAt: s.updatedAt || now,
+      }));
+
+      Alert.alert(
+        "Import Snippets",
+        `Found ${imported.length} snippets. Import them?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Import",
+            onPress: () => {
+              importSnippets(imported);
+              if (Platform.OS !== "web") {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              }
+              Alert.alert("Done", `${imported.length} snippets imported successfully.`);
+            },
+          },
+        ]
+      );
+    } catch (e) {
+      Alert.alert("Import Failed", "Could not parse clipboard contents. Make sure it's valid JSON.");
+    }
+  }, [importSnippets]);
+
+  const bubbleSizes: Array<"small" | "medium" | "large"> = ["small", "medium", "large"];
+  const defaultViews: Array<"pinned" | "recent"> = ["pinned", "recent"];
+
+  return (
+    <ScreenContainer>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.screenTitle, { color: colors.foreground }]}>Settings</Text>
+
+        {/* Overlay Section */}
+        <Text style={[styles.sectionTitle, { color: colors.muted }]}>OVERLAY</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Bubble Size</Text>
+            <View style={styles.segmentControl}>
+              {bubbleSizes.map((size) => (
+                <Pressable
+                  key={size}
+                  onPress={() => handleBubbleSize(size)}
+                  style={({ pressed }) => [
+                    styles.segment,
+                    {
+                      backgroundColor:
+                        settings.bubbleSize === size ? colors.primary : "transparent",
+                      borderColor: colors.border,
+                    },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      {
+                        color: settings.bubbleSize === size ? "#fff" : colors.muted,
+                        fontWeight: settings.bubbleSize === size ? "600" : "400",
+                      },
+                    ]}
+                  >
+                    {size.charAt(0).toUpperCase() + size.slice(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Snap to Edge</Text>
+            <Switch
+              value={settings.snapToEdge}
+              onValueChange={(v) => handleToggle("snapToEdge", v)}
+              trackColor={{ false: colors.border, true: colors.primary + "88" }}
+              thumbColor={settings.snapToEdge ? colors.primary : colors.muted}
+            />
+          </View>
+        </View>
+
+        {/* Behavior Section */}
+        <Text style={[styles.sectionTitle, { color: colors.muted }]}>BEHAVIOR</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Default View</Text>
+            <View style={styles.segmentControl}>
+              {defaultViews.map((view) => (
+                <Pressable
+                  key={view}
+                  onPress={() => handleDefaultView(view)}
+                  style={({ pressed }) => [
+                    styles.segment,
+                    {
+                      backgroundColor:
+                        settings.defaultView === view ? colors.primary : "transparent",
+                      borderColor: colors.border,
+                    },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      {
+                        color: settings.defaultView === view ? "#fff" : colors.muted,
+                        fontWeight: settings.defaultView === view ? "600" : "400",
+                      },
+                    ]}
+                  >
+                    {view.charAt(0).toUpperCase() + view.slice(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Haptic Feedback</Text>
+            <Switch
+              value={settings.hapticFeedback}
+              onValueChange={(v) => handleToggle("hapticFeedback", v)}
+              trackColor={{ false: colors.border, true: colors.primary + "88" }}
+              thumbColor={settings.hapticFeedback ? colors.primary : colors.muted}
+            />
+          </View>
+        </View>
+
+        {/* Data Section */}
+        <Text style={[styles.sectionTitle, { color: colors.muted }]}>DATA</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Total Snippets</Text>
+            <Text style={[styles.rowValue, { color: colors.primary }]}>{snippets.length}</Text>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          <Pressable
+            onPress={handleExport}
+            style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
+          >
+            <IconSymbol name="square.and.arrow.up" size={18} color={colors.primary} />
+            <Text style={[styles.actionText, { color: colors.primary }]}>Export Snippets</Text>
+          </Pressable>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          <Pressable
+            onPress={handleImport}
+            style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
+          >
+            <IconSymbol name="square.and.arrow.down" size={18} color={colors.primary} />
+            <Text style={[styles.actionText, { color: colors.primary }]}>Import from Clipboard</Text>
+          </Pressable>
+        </View>
+
+        {/* About Section */}
+        <Text style={[styles.sectionTitle, { color: colors.muted }]}>ABOUT</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Version</Text>
+            <Text style={[styles.rowValue, { color: colors.muted }]}>1.0.0</Text>
+          </View>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Built by</Text>
+            <Text style={[styles.rowValue, { color: colors.muted }]}>Cassie</Text>
+          </View>
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </ScreenContainer>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+  screenTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 1,
+    marginTop: 24,
+    marginBottom: 8,
+    paddingLeft: 4,
+  },
+  section: {
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  rowLabel: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  rowValue: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  divider: {
+    height: 0.5,
+    marginLeft: 16,
+  },
+  segmentControl: {
+    flexDirection: "row",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  segment: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 0.5,
+  },
+  segmentText: {
+    fontSize: 13,
+  },
+  actionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  actionText: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+});
