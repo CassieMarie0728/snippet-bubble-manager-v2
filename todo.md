@@ -25,3 +25,6 @@
 - [x] Export/Import snippets as JSON
 - [x] Clean up debug console.log in theme-provider
 - [x] Write and pass unit tests
+- [x] Add syntax highlighting to code blocks in snippet cards
+- [x] Add syntax highlighting to code blocks in snippet detail screen
+- [x] Create reusable CodeHighlighter component

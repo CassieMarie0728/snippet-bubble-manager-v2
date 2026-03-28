@@ -6,6 +6,7 @@ import { Snippet } from "@/lib/types";
 import { useSnippets } from "@/lib/snippet-context";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { CodeHighlighter } from "@/components/code-highlighter";
 import { useState, useCallback } from "react";
 
 interface SnippetCardProps {
@@ -48,8 +49,6 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
     }
     togglePin(snippet.id);
   }, [snippet.id, togglePin]);
-
-  const codePreview = snippet.code.split("\n").slice(0, 2).join("\n");
 
   return (
     <Pressable
@@ -110,9 +109,12 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
       </View>
 
       <View style={[styles.codeBlock, { backgroundColor: colors.background }]}>
-        <Text style={[styles.codeText, { color: colors.muted }]} numberOfLines={2}>
-          {codePreview}
-        </Text>
+        <CodeHighlighter
+          code={snippet.code}
+          language={snippet.language}
+          maxLines={3}
+          fontSize={11}
+        />
       </View>
 
       <View style={styles.footer}>

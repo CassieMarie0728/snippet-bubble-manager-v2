@@ -13,6 +13,7 @@ import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { CodeHighlighter } from "@/components/code-highlighter";
 import { useSnippets } from "@/lib/snippet-context";
 import { useColors } from "@/hooks/use-colors";
 
@@ -190,20 +191,14 @@ export default function SnippetDetailScreen() {
               <Text style={styles.codeCopyText}>{copied ? "Copied!" : "Copy"}</Text>
             </Pressable>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <Text
-              style={[
-                styles.codeText,
-                {
-                  color: colors.foreground,
-                  fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-                },
-              ]}
-              selectable
-            >
-              {snippet.code}
-            </Text>
-          </ScrollView>
+          <View style={styles.codeContent}>
+            <CodeHighlighter
+              code={snippet.code}
+              language={snippet.language}
+              fontSize={13}
+              showLineNumbers={true}
+            />
+          </View>
         </View>
 
         {/* Metadata */}
@@ -389,6 +384,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     padding: 14,
     paddingTop: 0,
+  },
+  codeContent: {
+    paddingHorizontal: 4,
+    paddingBottom: 8,
   },
   metaSection: {
     borderTopWidth: 0.5,
