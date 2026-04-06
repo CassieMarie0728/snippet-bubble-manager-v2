@@ -28,3 +28,10 @@
 - [x] Add syntax highlighting to code blocks in snippet cards
 - [x] Add syntax highlighting to code blocks in snippet detail screen
 - [x] Create reusable CodeHighlighter component
+- [x] Write comprehensive integration test suite (27 tests)
+- [x] Run full smoke test: CRUD, search, filter, favorites, pinning
+- [x] Validate UI/UX: dark/light modes, responsiveness, empty states
+- [x] Performance test with large datasets (up to 5000 snippets)
+- [x] Verify syntax highlighting across all languages
+- [x] Test settings, export/import, data persistence
+- [x] Document all findings in SMOKE_TEST_REPORT.md
