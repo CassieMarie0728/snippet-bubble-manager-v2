@@ -18,7 +18,7 @@ describe("Types and Constants", () => {
     expect(LANGUAGES).toContain("Python");
     expect(LANGUAGES).toContain("Bash");
     expect(LANGUAGES).toContain("SQL");
-    expect(LANGUAGES).toContain("Other");
+    expect(LANGUAGES).toContain("Plaintext");
     expect(LANGUAGES.length).toBeGreaterThanOrEqual(15);
   });
 

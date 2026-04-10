@@ -5,14 +5,61 @@ export interface Snippet {
   language: string;
   description: string;
   tags: string[];
+  categoryId?: string;
+  collectionIds?: string[];
   isFavorite: boolean;
   isPinned: boolean;
   lastCopiedAt: number | null;
+  copyCount?: number;
   createdAt: number;
   updatedAt: number;
 }
 
-export type SnippetInput = Omit<Snippet, "id" | "createdAt" | "updatedAt" | "lastCopiedAt">;
+export type SnippetInput = Omit<Snippet, "id" | "createdAt" | "updatedAt" | "lastCopiedAt" | "copyCount">;
+
+export interface Category {
+  id: string;
+  name: string;
+  parentId?: string;
+  icon?: string;
+  color?: string;
+  description?: string;
+  snippetCount?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type CategoryInput = Omit<Category, "id" | "createdAt" | "updatedAt" | "snippetCount">;
+
+export interface Collection {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  snippetIds: string[];
+  isPublic?: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type CollectionInput = Omit<Collection, "id" | "createdAt" | "updatedAt">;
+
+export interface SearchOptions {
+  query?: string;
+  language?: string;
+  categoryId?: string;
+  collectionId?: string;
+  isFavorite?: boolean;
+  isPinned?: boolean;
+  useRegex?: boolean;
+  sortBy?: "recent" | "title" | "mostUsed" | "pinned";
+}
+
+export interface AutoTagResult {
+  tags: string[];
+  detectedFrameworks: string[];
+  detectedLibraries: string[];
+}
 
 export interface AppSettings {
   bubbleSize: "small" | "medium" | "large";
@@ -31,26 +78,86 @@ export const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export const LANGUAGES = [
-  "Kotlin",
+  "C",
+  "C++",
+  "C#",
+  "Java",
+  "Python",
   "JavaScript",
   "TypeScript",
-  "Python",
-  "Bash",
-  "SQL",
-  "JSON",
-  "HTML",
-  "CSS",
-  "Swift",
-  "Go",
-  "Rust",
-  "C++",
-  "Java",
-  "Ruby",
   "PHP",
-  "Shell",
-  "YAML",
+  "R",
+  "SQL",
+  "Go",
+  "Swift",
+  "Perl",
+  "Ruby",
+  "Rust",
+  "Dart",
+  "Kotlin",
+  "Julia",
+  "Scheme",
+  "PowerShell",
+  "Bash",
+  "Curl",
+  "Nim",
+  "Erlang",
+  "Lobster",
+  "Lua",
+  "Haskell",
+  "Lisp",
+  "Scala",
+  "Dockerfile",
+  "JSON",
+  "CSS",
+  "SCSS",
+  "HTML",
   "XML",
-  "Other",
+  "YAML",
+  "Markdown",
+  "Plaintext",
+  "Assembly",
+  "Bat",
+  "GraphQL",
+  "MySQL",
+  "MariaDB",
+  "PostgreSQL",
+  "HTTP",
+  "Sass",
+  "LaTeX",
 ] as const;
 
-export type FilterType = "all" | "pinned" | "recent" | string;
+export type FilterType = "all" | "pinned" | "recent" | "favorites" | string;
+
+export const CATEGORY_TEMPLATES: Record<string, CategoryInput> = {
+  backend: {
+    name: "Backend",
+    icon: "server",
+    color: "#3B82F6",
+    description: "Server-side code and APIs",
+  },
+  frontend: {
+    name: "Frontend",
+    icon: "code",
+    color: "#8B5CF6",
+    description: "Client-side and UI code",
+  },
+  database: {
+    name: "Database",
+    icon: "database",
+    color: "#EC4899",
+    description: "Database queries and schemas",
+  },
+  devops: {
+    name: "DevOps",
+    icon: "settings",
+    color: "#F59E0B",
+    description: "Infrastructure and deployment",
+  },
+  utilities: {
+    name: "Utilities",
+    icon: "tools",
+    color: "#10B981",
+    description: "Helper functions and utilities",
+  },
+};

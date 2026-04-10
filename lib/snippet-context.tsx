@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Snippet, SnippetInput, AppSettings, DEFAULT_SETTINGS } from "./types";
+import { Snippet, SnippetInput, AppSettings, DEFAULT_SETTINGS, SearchOptions } from "./types";
+import { searchSnippets as advancedSearchSnippets, trackRecentlyUsed, getMostUsedSnippets, getRecentlyUsedSnippets, generateAutoTags } from "./advanced-search";
+import { formatCode } from "./code-formatter";
 
 const SNIPPETS_KEY = "@snippets";
 const SETTINGS_KEY = "@settings";
@@ -86,6 +88,11 @@ interface SnippetContextValue {
   importSnippets: (snippets: Snippet[]) => void;
   getSnippetById: (id: string) => Snippet | undefined;
   searchSnippets: (query: string) => Snippet[];
+  advancedSearch: (options: SearchOptions) => Snippet[];
+  getMostUsedSnippets: (limit?: number) => Snippet[];
+  getRecentlyUsedSnippets: (limit?: number) => Snippet[];
+  formatSnippetCode: (id: string, language: string) => Promise<void>;
+  generateAutoTags: (code: string, language: string) => string[];
   getSortedSnippets: () => Snippet[];
   getFavorites: () => Snippet[];
   getLanguages: () => string[];
@@ -201,6 +208,36 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  const advancedSearch = useCallback((options: SearchOptions) => {
+    // Use the advanced search from advanced-search.ts
+    const results = advancedSearchSnippets(stateRef.current.snippets, options);
+    return results.map((r) => r.snippet);
+  }, []);
+
+  const getMostUsedSnippetsInternal = useCallback((limit = 10) => {
+    return getMostUsedSnippets(stateRef.current.snippets, limit);
+  }, []);
+
+  const getRecentlyUsedSnippetsInternal = useCallback((limit = 10) => {
+    return getRecentlyUsedSnippets(stateRef.current.snippets, limit);
+  }, []);
+
+  const formatSnippetCodeInternal = useCallback(async (id: string, language: string) => {
+    const snippet = stateRef.current.snippets.find((s) => s.id === id);
+    if (!snippet) return;
+
+    try {
+      const formatted = await formatCode(snippet.code, language);
+      updateSnippet(id, { ...snippet, code: formatted });
+    } catch (error) {
+      console.error("Failed to format code:", error);
+    }
+  }, []);
+
+  const generateAutoTagsInternal = useCallback((code: string, language: string) => {
+    return generateAutoTags(code, language);
+  }, []);
+
   const getSortedSnippets = useCallback(() => {
     return getSortedInternal(stateRef.current.snippets);
   }, []);
@@ -229,6 +266,11 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     importSnippets,
     getSnippetById,
     searchSnippets,
+    advancedSearch,
+    getMostUsedSnippets: getMostUsedSnippetsInternal,
+    getRecentlyUsedSnippets: getRecentlyUsedSnippetsInternal,
+    formatSnippetCode: formatSnippetCodeInternal,
+    generateAutoTags: generateAutoTagsInternal,
     getSortedSnippets,
     getFavorites,
     getLanguages,
@@ -243,6 +285,8 @@ function getSortedInternal(snippets: Snippet[]): Snippet[] {
     return b.updatedAt - a.updatedAt;
   });
 }
+
+
 
 export function useSnippets() {
   const ctx = useContext(SnippetContext);

@@ -35,3 +35,19 @@
 - [x] Verify syntax highlighting across all languages
 - [x] Test settings, export/import, data persistence
 - [x] Document all findings in SMOKE_TEST_REPORT.md
+
+
+## Tier 1: Syntax, Formatting & Organization
+
+- [x] Expand syntax highlighting to all 40+ languages
+- [x] Add language-specific code formatting (Prettier, Black, gofmt, etc.)
+- [x] Build hierarchical category system (Backend > Database > PostgreSQL)
+- [x] Implement Collections feature (group related snippets)
+- [x] Add auto-tagging based on language + content detection
+- [x] Implement full-text search in code content
+- [x] Add regex search capability
+- [x] Add pattern-based search
+- [x] Track recently-used snippets
+- [x] Build category/collection management UI
+- [x] Add filtering by category and collection
+- [x] Test Tier 1 features and fix bugs

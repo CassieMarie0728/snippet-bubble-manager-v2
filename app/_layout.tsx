@@ -9,6 +9,7 @@ import { Platform } from "react-native";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { SnippetProvider } from "@/lib/snippet-context";
+import { CategoryCollectionProvider } from "@/lib/category-collection-context";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -82,8 +83,9 @@ export default function RootLayout() {
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SnippetProvider>
-        <trpc.Provider client={trpcClient} queryClient={queryClient}>
-          <QueryClientProvider client={queryClient}>
+        <CategoryCollectionProvider>
+          <trpc.Provider client={trpcClient} queryClient={queryClient}>
+            <QueryClientProvider client={queryClient}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="oauth/callback" />
@@ -97,8 +99,9 @@ export default function RootLayout() {
               />
             </Stack>
             <StatusBar style="auto" />
-          </QueryClientProvider>
-        </trpc.Provider>
+            </QueryClientProvider>
+          </trpc.Provider>
+        </CategoryCollectionProvider>
       </SnippetProvider>
     </GestureHandlerRootView>
   );
