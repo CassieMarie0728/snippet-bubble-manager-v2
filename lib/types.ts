@@ -17,6 +17,27 @@ export interface Snippet {
 
 export type SnippetInput = Omit<Snippet, "id" | "createdAt" | "updatedAt" | "lastCopiedAt" | "copyCount">;
 
+export interface SnippetVersion {
+  id: string;
+  snippetId: string;
+  code: string;
+  title: string;
+  language: string;
+  changeDescription?: string;
+  createdAt: number;
+}
+
+export interface ShareableSnippet {
+  id: string;
+  snippetId: string;
+  shareToken: string;
+  viewCount: number;
+  isPublic: boolean;
+  expiresAt?: number;
+  maxViews?: number;
+  createdAt: number;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -128,6 +149,19 @@ export const LANGUAGES = [
 ] as const;
 
 export type FilterType = "all" | "pinned" | "recent" | "favorites" | string;
+
+export interface VersionHistoryItem {
+  version: SnippetVersion;
+  isCurrent: boolean;
+  daysAgo: number;
+  changeSize: number;
+}
+
+export interface ShareExpirationInfo {
+  isExpired: boolean;
+  expiresAt?: Date;
+  viewsRemaining?: number;
+}
 
 export const CATEGORY_TEMPLATES: Record<string, CategoryInput> = {
   backend: {
