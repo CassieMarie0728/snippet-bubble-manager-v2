@@ -51,3 +51,24 @@
 - [x] Build category/collection management UI
 - [x] Add filtering by category and collection
 - [x] Test Tier 1 features and fix bugs
+
+
+## Advanced Features: Versioning, Sharing, IDE Integration
+
+- [x] Build snippet versioning system with history tracking
+- [x] Implement revert to previous version functionality
+- [x] Build version history UI component
+- [x] Generate shareable snippet links
+- [x] Implement QR code generation for snippets
+- [x] Build share UI with copy link and QR code options
+- [x] Scaffold VS Code extension project structure
+- [x] Implement VS Code snippet capture command
+- [x] Build sync between VS Code extension and mobile app
+- [ ] Test all advanced features and integrate into detail screen
+
+## Snippet Templates & Dark Mode
+
+- [x] Create snippet templates service with common patterns (23 templates)
+- [x] Build template UI screen for browsing and selecting templates
+- [x] Implement dark mode toggle in Settings with manual override (System/Light/Dark)
+- [x] Test templates and dark mode functionality (113 tests passing)

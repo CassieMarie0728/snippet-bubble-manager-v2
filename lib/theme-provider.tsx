@@ -1,19 +1,28 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Appearance, View, useColorScheme as useSystemColorScheme } from "react-native";
 import { colorScheme as nativewindColorScheme, vars } from "nativewind";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { SchemeColors, type ColorScheme } from "@/constants/theme";
 
+type ThemeMode = "system" | "light" | "dark";
+
 type ThemeContextValue = {
   colorScheme: ColorScheme;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => Promise<void>;
   setColorScheme: (scheme: ColorScheme) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+const THEME_MODE_KEY = "@snippet-bubbles/theme-mode";
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useSystemColorScheme() ?? "light";
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(systemScheme);
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const applyScheme = useCallback((scheme: ColorScheme) => {
     nativewindColorScheme.set(scheme);
@@ -29,14 +38,50 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const resolveColorScheme = useCallback((mode: ThemeMode, system: ColorScheme): ColorScheme => {
+    if (mode === "system") return system;
+    return mode;
+  }, []);
+
+  const setThemeMode = useCallback(async (mode: ThemeMode) => {
+    setThemeModeState(mode);
+    await AsyncStorage.setItem(THEME_MODE_KEY, mode);
+    const scheme = resolveColorScheme(mode, systemScheme);
+    setColorSchemeState(scheme);
+    applyScheme(scheme);
+  }, [systemScheme, resolveColorScheme, applyScheme]);
+
+  // Load theme mode on mount
+  useEffect(() => {
+    const loadThemeMode = async () => {
+      try {
+        const saved = await AsyncStorage.getItem(THEME_MODE_KEY);
+        const mode = (saved as ThemeMode) || "system";
+        setThemeModeState(mode);
+        const scheme = resolveColorScheme(mode, systemScheme);
+        setColorSchemeState(scheme);
+        applyScheme(scheme);
+      } catch (error) {
+        console.error("Failed to load theme mode", error);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    loadThemeMode();
+  }, [systemScheme, resolveColorScheme, applyScheme]);
+
   const setColorScheme = useCallback((scheme: ColorScheme) => {
     setColorSchemeState(scheme);
     applyScheme(scheme);
   }, [applyScheme]);
 
+  // Update scheme when system scheme changes (only if in system mode)
   useEffect(() => {
-    applyScheme(colorScheme);
-  }, [applyScheme, colorScheme]);
+    if (themeMode === "system") {
+      setColorSchemeState(systemScheme);
+      applyScheme(systemScheme);
+    }
+  }, [systemScheme, themeMode, applyScheme]);
 
   const themeVariables = useMemo(
     () =>
@@ -57,10 +102,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       colorScheme,
+      themeMode,
+      setThemeMode,
       setColorScheme,
     }),
-    [colorScheme, setColorScheme],
+    [colorScheme, themeMode, setThemeMode, setColorScheme],
   );
+
+  if (!isLoaded) {
+    return <View style={{ flex: 1, backgroundColor: SchemeColors[colorScheme].background }} />;
+  }
   return (
     <ThemeContext.Provider value={value}>
       <View style={[{ flex: 1 }, themeVariables]}>{children}</View>

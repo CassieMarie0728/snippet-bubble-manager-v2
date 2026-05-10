@@ -16,11 +16,23 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useSnippets } from "@/lib/snippet-context";
 import { useColors } from "@/hooks/use-colors";
+import { useThemeContext } from "@/lib/theme-provider";
 
 export default function SettingsScreen() {
   const colors = useColors();
   const { state, updateSettings, importSnippets } = useSnippets();
   const { settings, snippets } = state;
+  const { themeMode, setThemeMode } = useThemeContext();
+
+  const handleThemeModeChange = useCallback(
+    async (mode: "system" | "light" | "dark") => {
+      await setThemeMode(mode);
+      if (Platform.OS !== "web" && settings.hapticFeedback) {
+        Haptics.selectionAsync();
+      }
+    },
+    [setThemeMode, settings.hapticFeedback]
+  );
 
   const handleToggle = useCallback(
     (key: "snapToEdge" | "hapticFeedback", value: boolean) => {
@@ -196,6 +208,47 @@ export default function SettingsScreen() {
               trackColor={{ false: colors.border, true: colors.primary + "88" }}
               thumbColor={settings.snapToEdge ? colors.primary : colors.muted}
             />
+          </View>
+        </View>
+
+        {/* Appearance Section */}
+        <Text style={[styles.sectionTitle, { color: colors.muted }]}>APPEARANCE</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Theme</Text>
+            <View style={styles.segmentControl}>
+              {[
+                { label: "System", value: "system" },
+                { label: "Light", value: "light" },
+                { label: "Dark", value: "dark" },
+              ].map((theme) => (
+                <Pressable
+                  key={theme.value}
+                  onPress={() => handleThemeModeChange(theme.value as "system" | "light" | "dark")}
+                  style={({ pressed }) => [
+                    styles.segment,
+                    {
+                      backgroundColor:
+                        themeMode === theme.value ? colors.primary : "transparent",
+                      borderColor: colors.border,
+                    },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      {
+                        color: themeMode === theme.value ? "#fff" : colors.muted,
+                        fontWeight: themeMode === theme.value ? "600" : "400",
+                      },
+                    ]}
+                  >
+                    {theme.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
         </View>
 
