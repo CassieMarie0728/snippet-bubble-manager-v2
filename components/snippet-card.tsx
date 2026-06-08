@@ -7,6 +7,7 @@ import { useSnippets } from "@/lib/snippet-context";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { CodeHighlighter } from "@/components/code-highlighter";
+import { AISnippetExpansion } from "@/components/ai-snippet-expansion";
 import { useState, useCallback } from "react";
 
 interface SnippetCardProps {
@@ -123,6 +124,9 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
           fontSize={11}
         />
       </View>
+
+      {/* AI Expansion */}
+      <AISnippetExpansion snippet={snippet} />
 
       <View style={styles.footer}>
         {snippet.description ? (

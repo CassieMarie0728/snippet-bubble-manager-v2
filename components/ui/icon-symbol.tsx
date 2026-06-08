@@ -34,6 +34,7 @@ const MAPPING = {
   "tag.fill": "label",
   "chevron.left.forwardslash.chevron.right": "code",
   "paperplane.fill": "send",
+  "sparkles": "auto-awesome",
 } as IconMapping;
 
 /**

@@ -10,6 +10,7 @@ import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { SnippetProvider } from "@/lib/snippet-context";
 import { CategoryCollectionProvider } from "@/lib/category-collection-context";
+import { AIPersonalityProvider } from "@/lib/ai-personality-context";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -84,23 +85,25 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SnippetProvider>
         <CategoryCollectionProvider>
-          <trpc.Provider client={trpcClient} queryClient={queryClient}>
-            <QueryClientProvider client={queryClient}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="oauth/callback" />
-              <Stack.Screen
-                name="snippet/[id]"
-                options={{ presentation: "modal" }}
-              />
-              <Stack.Screen
-                name="snippet/edit"
-                options={{ presentation: "modal" }}
-              />
-            </Stack>
-            <StatusBar style="auto" />
-            </QueryClientProvider>
-          </trpc.Provider>
+          <AIPersonalityProvider>
+            <trpc.Provider client={trpcClient} queryClient={queryClient}>
+              <QueryClientProvider client={queryClient}>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="oauth/callback" />
+                  <Stack.Screen
+                    name="snippet/[id]"
+                    options={{ presentation: "modal" }}
+                  />
+                  <Stack.Screen
+                    name="snippet/edit"
+                    options={{ presentation: "modal" }}
+                  />
+                </Stack>
+                <StatusBar style="auto" />
+              </QueryClientProvider>
+            </trpc.Provider>
+          </AIPersonalityProvider>
         </CategoryCollectionProvider>
       </SnippetProvider>
     </GestureHandlerRootView>

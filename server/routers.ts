@@ -1,10 +1,16 @@
+import { z } from "zod";
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { invokeLLM } from "./_core/llm";
+
+const messageSchema = z.object({
+  role: z.enum(["system", "user", "assistant"]),
+  content: z.string(),
+});
 
 export const appRouter = router({
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
@@ -17,12 +23,60 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  // AI-powered snippet operations
+  ai: router({
+    generate: publicProcedure
+      .input(
+        z.object({
+          messages: z.array(messageSchema),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const response = await invokeLLM({
+          messages: input.messages,
+        });
+        return response.choices[0]?.message?.content || "";
+      }),
+
+    explain: publicProcedure
+      .input(
+        z.object({
+          messages: z.array(messageSchema),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const response = await invokeLLM({
+          messages: input.messages,
+        });
+        return response.choices[0]?.message?.content || "";
+      }),
+
+    convert: publicProcedure
+      .input(
+        z.object({
+          messages: z.array(messageSchema),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const response = await invokeLLM({
+          messages: input.messages,
+        });
+        return response.choices[0]?.message?.content || "";
+      }),
+
+    generateRelated: publicProcedure
+      .input(
+        z.object({
+          messages: z.array(messageSchema),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const response = await invokeLLM({
+          messages: input.messages,
+        });
+        return response.choices[0]?.message?.content || "";
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

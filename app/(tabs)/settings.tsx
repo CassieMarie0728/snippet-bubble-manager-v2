@@ -1,4 +1,3 @@
-import { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -17,12 +16,15 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useSnippets } from "@/lib/snippet-context";
 import { useColors } from "@/hooks/use-colors";
 import { useThemeContext } from "@/lib/theme-provider";
+import { AIPersonalitySettings } from "@/components/ai-personality-settings";
+import { useCallback, useState } from "react";
 
 export default function SettingsScreen() {
   const colors = useColors();
   const { state, updateSettings, importSnippets } = useSnippets();
   const { settings, snippets } = state;
   const { themeMode, setThemeMode } = useThemeContext();
+  const [showAISettings, setShowAISettings] = useState(false);
 
   const handleThemeModeChange = useCallback(
     async (mode: "system" | "light" | "dark") => {
@@ -251,6 +253,21 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        {/* AI Personality Section */}
+        <Text style={[styles.sectionTitle, { color: colors.muted }]}>AI ASSISTANT</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Pressable
+            onPress={() => setShowAISettings(!showAISettings)}
+            style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
+          >
+            <IconSymbol name="sparkles" size={18} color={colors.primary} />
+            <Text style={[styles.actionText, { color: colors.primary }]}>
+              {showAISettings ? "Hide AI Settings" : "Customize AI Personality"}
+            </Text>
+          </Pressable>
+        </View>
+        {showAISettings && <AIPersonalitySettings />}
 
         {/* Behavior Section */}
         <Text style={[styles.sectionTitle, { color: colors.muted }]}>BEHAVIOR</Text>

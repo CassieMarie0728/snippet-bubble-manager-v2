@@ -75,3 +75,22 @@
 - [x] Build template UI screen for browsing and selecting templates
 - [x] Implement dark mode toggle in Settings with manual override (System/Light/Dark)
 - [x] Test templates and dark mode functionality (113 tests passing)
+
+
+## AI-Powered Features (Complete)
+
+- [x] Create AI service layer with backend integration
+- [x] Build AI personality settings UI (tone slider, style options, custom instructions)
+- [x] Implement AsyncStorage persistence for AI settings
+- [x] Create AI API client functions (generate, explain, convert)
+- [x] Build inline expansion component for snippet cards
+- [x] Create full chat modal with multi-turn conversation
+- [x] Build new AI tab with generation history
+- [x] Add "Explain", "Convert", "Generate Related" buttons to snippet cards
+- [x] Implement snippet generation from prompts with edit-before-save workflow
+- [x] Implement language conversion feature (Python ↔ JavaScript, etc.)
+- [x] Implement snippet explanation feature
+- [x] Write unit tests for AI service layer
+- [x] Write integration tests for AI UI components
+- [x] Test end-to-end AI workflows
+- [x] Integrate AI features into snippet detail screen
