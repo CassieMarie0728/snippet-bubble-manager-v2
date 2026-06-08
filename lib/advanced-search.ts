@@ -291,6 +291,50 @@ function sortResults(results: SearchResult[], sortBy: string): SearchResult[] {
 }
 
 /**
+ * Search snippets by code content patterns (e.g., "async/await", "try/catch")
+ */
+export function searchByCodeContent(snippets: Snippet[], contentQuery: string): SearchResult[] {
+  const queryLower = contentQuery.toLowerCase();
+  const results: SearchResult[] = [];
+
+  snippets.forEach((snippet) => {
+    let score = 0;
+    let matchType: SearchResult["matchType"] = "code";
+
+    // Direct code search
+    if (snippet.code.toLowerCase().includes(queryLower)) {
+      score += 50;
+      matchType = "code";
+    }
+
+    if (score > 0) {
+      results.push({
+        snippet,
+        score,
+        matchType,
+        preview: generateCodeContentPreview(snippet, queryLower),
+      });
+    }
+  });
+
+  return results.sort((a, b) => b.score - a.score);
+}
+
+/**
+ * Generate preview for code content search
+ */
+function generateCodeContentPreview(snippet: Snippet, query: string): string {
+  const lines = snippet.code.split("\n");
+  const matchingLines = lines.filter((line) => line.toLowerCase().includes(query));
+
+  if (matchingLines.length > 0) {
+    return matchingLines.slice(0, 3).join("\n").substring(0, 150);
+  }
+
+  return snippet.code.substring(0, 150);
+}
+
+/**
  * Auto-detect frameworks and libraries from code
  */
 export function detectFrameworks(code: string): string[] {

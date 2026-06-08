@@ -32,6 +32,7 @@ export default function LibraryScreen() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [useRegex, setUseRegex] = useState(false);
+  const [searchByCodeContent, setSearchByCodeContent] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showCategoryBrowser, setShowCategoryBrowser] = useState(false);
   const [showCollectionManager, setShowCollectionManager] = useState(false);

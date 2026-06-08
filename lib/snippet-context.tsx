@@ -30,7 +30,8 @@ type Action =
   | { type: "TOGGLE_PIN"; id: string }
   | { type: "MARK_COPIED"; id: string }
   | { type: "UPDATE_SETTINGS"; settings: Partial<AppSettings> }
-  | { type: "IMPORT"; snippets: Snippet[] };
+  | { type: "IMPORT"; snippets: Snippet[] }
+  | { type: "DUPLICATE"; id: string };
 
 function reducer(state: SnippetState, action: Action): SnippetState {
   switch (action.type) {
@@ -70,6 +71,19 @@ function reducer(state: SnippetState, action: Action): SnippetState {
       return { ...state, settings: { ...state.settings, ...action.settings } };
     case "IMPORT":
       return { ...state, snippets: [...action.snippets, ...state.snippets] };
+    case "DUPLICATE": {
+      const original = state.snippets.find((s) => s.id === action.id);
+      if (!original) return state;
+      const duplicated: Snippet = {
+        ...original,
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2, 9),
+        title: `${original.title} (Copy)`,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        lastCopiedAt: null,
+      };
+      return { ...state, snippets: [duplicated, ...state.snippets] };
+    }
     default:
       return state;
   }
@@ -84,6 +98,7 @@ interface SnippetContextValue {
   toggleFavorite: (id: string) => void;
   togglePin: (id: string) => void;
   markCopied: (id: string) => void;
+  duplicateSnippet: (id: string) => void;
   updateSettings: (settings: Partial<AppSettings>) => void;
   importSnippets: (snippets: Snippet[]) => void;
   getSnippetById: (id: string) => Snippet | undefined;
@@ -254,6 +269,10 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     return Array.from(langs).sort();
   }, []);
 
+  const duplicateSnippet = useCallback((id: string) => {
+    dispatch({ type: "DUPLICATE", id });
+  }, []);
+
   const value: SnippetContextValue = {
     state,
     addSnippet,
@@ -262,6 +281,7 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     toggleFavorite,
     togglePin,
     markCopied,
+    duplicateSnippet,
     updateSettings,
     importSnippets,
     getSnippetById,

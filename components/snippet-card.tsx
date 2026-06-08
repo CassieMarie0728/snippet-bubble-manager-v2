@@ -16,7 +16,7 @@ interface SnippetCardProps {
 export function SnippetCard({ snippet }: SnippetCardProps) {
   const colors = useColors();
   const router = useRouter();
-  const { toggleFavorite, togglePin, markCopied } = useSnippets();
+  const { toggleFavorite, togglePin, markCopied, duplicateSnippet } = useSnippets();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -49,6 +49,13 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
     }
     togglePin(snippet.id);
   }, [snippet.id, togglePin]);
+
+  const handleDuplicate = useCallback(() => {
+    if (Platform.OS !== "web") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    duplicateSnippet(snippet.id);
+  }, [snippet.id, duplicateSnippet]);
 
   return (
     <Pressable
@@ -125,21 +132,38 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
         ) : (
           <View />
         )}
-        <Pressable
-          onPress={handleCopy}
-          style={({ pressed }) => [
-            styles.copyBtn,
-            { backgroundColor: copied ? colors.success : colors.primary },
-            pressed && { transform: [{ scale: 0.97 }], opacity: 0.9 },
-          ]}
-        >
-          <IconSymbol
-            name={copied ? "checkmark" : "doc.on.doc.fill"}
-            size={14}
-            color="#fff"
-          />
-          <Text style={styles.copyText}>{copied ? "Copied!" : "Copy"}</Text>
-        </Pressable>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <Pressable
+            onPress={handleCopy}
+            style={({ pressed }) => [
+              styles.copyBtn,
+              { backgroundColor: copied ? colors.success : colors.primary, flex: 1 },
+              pressed && { transform: [{ scale: 0.97 }], opacity: 0.9 },
+            ]}
+          >
+            <IconSymbol
+              name={copied ? "checkmark" : "doc.on.doc.fill"}
+              size={14}
+              color="#fff"
+            />
+            <Text style={styles.copyText}>{copied ? "Copied!" : "Copy"}</Text>
+          </Pressable>
+          <Pressable
+            onPress={handleDuplicate}
+            style={({ pressed }) => [
+              styles.copyBtn,
+              { backgroundColor: colors.primary, flex: 1 },
+              pressed && { transform: [{ scale: 0.97 }], opacity: 0.9 },
+            ]}
+          >
+            <IconSymbol
+              name="doc.fill"
+              size={14}
+              color="#fff"
+            />
+            <Text style={styles.copyText}>Duplicate</Text>
+          </Pressable>
+        </View>
       </View>
     </Pressable>
   );

@@ -21,7 +21,7 @@ export default function SnippetDetailScreen() {
   const colors = useColors();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { state, toggleFavorite, togglePin, deleteSnippet, markCopied } = useSnippets();
+  const { state, toggleFavorite, togglePin, deleteSnippet, markCopied, duplicateSnippet } = useSnippets();
   const [copied, setCopied] = useState(false);
 
   const snippet = useMemo(
@@ -74,6 +74,14 @@ export default function SnippetDetailScreen() {
     if (Platform.OS !== "web") Haptics.selectionAsync();
     togglePin(snippet.id);
   }, [snippet, togglePin]);
+
+  const handleDuplicate = useCallback(() => {
+    if (!snippet) return;
+    if (Platform.OS !== "web") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    duplicateSnippet(snippet.id);
+  }, [snippet, duplicateSnippet]);
 
   if (!snippet) {
     return (
@@ -268,6 +276,16 @@ export default function SnippetDetailScreen() {
               size={20}
               color={snippet.isPinned ? colors.primary : colors.muted}
             />
+          </Pressable>
+          <Pressable
+            onPress={handleDuplicate}
+            style={({ pressed }) => [
+              styles.actionBtn,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <IconSymbol name="doc.fill" size={20} color={colors.primary} />
           </Pressable>
           <Pressable
             onPress={handleDelete}
