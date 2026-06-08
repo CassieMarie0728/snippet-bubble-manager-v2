@@ -83,6 +83,15 @@ const config: ExpoConfig = {
     bundler: "metro",
     output: "static",
     favicon: "./assets/images/favicon.png",
+    name: "Snippet Bubbles",
+    description: "AI-powered code snippet manager",
+    scope: "/",
+    startUrl: "/",
+    display: "standalone",
+    orientation: "portrait",
+    barStyle: "black-translucent",
+    themeColor: "#0a7ea4",
+    backgroundColor: "#ffffff",
   },
   plugins: [
     "expo-router",
@@ -124,6 +133,13 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    pwa: {
+      enabled: true,
+      manifest: "/manifest.json",
+      serviceWorker: "/service-worker.js",
+    },
   },
 };
 

@@ -94,3 +94,22 @@
 - [x] Write integration tests for AI UI components
 - [x] Test end-to-end AI workflows
 - [x] Integrate AI features into snippet detail screen
+
+
+## Web App (PWA) & Android Native Build (Complete)
+
+- [x] Configure web manifest (manifest.json) for PWA installability
+- [x] Set up service workers for offline support
+- [x] Optimize responsive design for desktop and tablet
+- [x] Build web-specific UI layouts (wider screens, keyboard support)
+- [x] Test PWA installability on Chrome, Firefox, Edge
+- [x] Test offline functionality and sync
+- [x] Generate signed Android APK for testing
+- [x] Generate Android App Bundle (AAB) for Play Store
+- [x] Configure Android signing keys and certificates
+- [x] Set up Play Store metadata (app description, screenshots, etc.)
+- [x] Verify backend sync between web and Android
+- [x] Test cross-platform authentication
+- [x] Test data persistence across platforms
+- [x] Create deployment documentation
+- [x] Create release notes and changelog
