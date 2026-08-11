@@ -1,79 +1,20 @@
-# Android Signing Credentials
+# Android Signing Security Notice
 
-**⚠️ KEEP THIS FILE SECURE - DO NOT COMMIT TO GIT**
+> **Do not place Android keystores, aliases, passwords, certificate fingerprints, or local signing paths in this repository.**
 
-## Keystore Information
+## Required Remediation
 
-- **Filename:** `snippet-bubbles.keystore`
-- **Alias:** `snippet-bubbles-key`
-- **Keystore Password:** `SnippetBubbles2026!`
-- **Key Password:** `SnippetBubbles2026!`
-- **Validity:** 10,000 days (until October 24, 2053)
+Any Android signing credentials that were previously documented or stored alongside this project must be treated as compromised. Before the first distribution build, create or rotate the Android signing credential in the Expo Application Services credential manager or an organization-approved secret manager. Do not reuse an exposed credential.
 
-## Certificate Details
+## Safe Release Procedure
 
-```
-Owner: CN=Snippet Bubbles, OU=Development, O=Snippet Bubbles, L=Joplin, ST=Missouri, C=US
-Issuer: CN=Snippet Bubbles, OU=Development, O=Snippet Bubbles, L=Joplin, ST=Missouri, C=US
-Serial: 600ee687add22d5e
-SHA1: C9:FB:93:6F:A2:B4:9A:26:28:5D:AA:1E:13:28:98:16:89:9C:EA:E8
-SHA256: 86:5D:B8:6E:EC:87:4D:A4:5A:9C:C4:0F:87:71:CB:BB:D4:2E:AD:AC:DD:23:6A:9C:00:76:BA:CB
-```
+1. Authenticate to the authorized Expo account with `npx eas-cli@latest login`.
+2. Configure or rotate Android credentials interactively with `npx eas-cli@latest credentials --platform android`.
+3. Store the generated credential only in EAS or an approved external vault; do not copy it into the repository, project directory, or documentation.
+4. Build the release App Bundle with `./scripts/build-android.sh aab`.
+5. Download the resulting `.aab` from the Expo build dashboard and upload it to the Google Play Console.
 
-## Environment Variables for Building
+## Repository Safeguards
 
-Set these before building APK/AAB:
+The project ignores keystores and common signing artifacts. A release build must fail closed if authorized EAS credentials are not available, rather than inventing or embedding signing material locally.
 
-```bash
-export KEYSTORE_PASSWORD="SnippetBubbles2026!"
-export KEY_ALIAS="snippet-bubbles-key"
-export KEY_PASSWORD="SnippetBubbles2026!"
-```
-
-## Build Commands
-
-### Build APK (for testing on devices)
-
-```bash
-export KEYSTORE_PASSWORD="SnippetBubbles2026!"
-export KEY_ALIAS="snippet-bubbles-key"
-export KEY_PASSWORD="SnippetBubbles2026!"
-
-./scripts/build-android.sh apk
-```
-
-### Build App Bundle (for Google Play Store)
-
-```bash
-export KEYSTORE_PASSWORD="SnippetBubbles2026!"
-export KEY_ALIAS="snippet-bubbles-key"
-export KEY_PASSWORD="SnippetBubbles2026!"
-
-./scripts/build-android.sh aab
-```
-
-## Important Notes
-
-1. **Never share this file** - It contains your signing credentials
-2. **Back it up securely** - You'll need it for all future app updates
-3. **Keep the password safe** - If lost, you'll need to create a new key for future releases
-4. **Add to .gitignore** - This file should NOT be committed to version control
-
-## Keystore File Location
-
-```
-/home/ubuntu/snippet-bubble-manager/snippet-bubbles.keystore
-```
-
-## Verification
-
-To verify the keystore is valid:
-
-```bash
-keytool -list -v -keystore snippet-bubbles.keystore -storepass "SnippetBubbles2026!"
-```
-
----
-
-**Generated:** June 8, 2026  
-**Status:** Ready for production builds

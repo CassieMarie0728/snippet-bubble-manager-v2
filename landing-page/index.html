@@ -233,6 +233,20 @@
             transform: translateY(-3px);
         }
 
+        .release-status {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            padding: 1rem 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.14);
+            border-radius: 0.5rem;
+            font-weight: bold;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: not-allowed;
+        }
+
         /* Hero Visual */
         .hero-visual {
             position: relative;
@@ -602,11 +616,11 @@
         }
     </style>
 </head>
-<body class="dark-mode">
+<body class="dark-mode" id="top">
     <!-- Header -->
     <header>
         <div class="header-content">
-            <a href="#" class="logo">
+            <a href="#top" class="logo" aria-label="Snippet Bubbles home">
                 <i class="fas fa-code"></i>
                 Snippet Bubbles
             </a>
@@ -627,16 +641,16 @@
         <div class="hero-content">
             <div class="hero-text">
                 <h1>Code Snippets. AI-Powered.</h1>
-                <p>Generate, explain, and convert code snippets with AI. Works offline. No subscriptions. No tracking.</p>
+                <p>Generate, explain, and convert code snippets with AI. Local-first. No subscriptions. No bullshit.</p>
                 <div class="hero-buttons">
-                    <button class="button-primary">
-                        <i class="fas fa-download"></i>
-                        Install PWA
-                    </button>
-                    <button class="button-secondary">
-                        <i class="fas fa-play"></i>
-                        Watch Demo
-                    </button>
+                    <a class="button-primary" href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-github"></i>
+                        View the Project
+                    </a>
+                    <a class="button-secondary" href="#features">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        Explore Features
+                    </a>
                 </div>
             </div>
             <div class="hero-visual">
@@ -712,7 +726,7 @@
                     <i class="fas fa-wifi-off"></i>
                 </div>
                 <h3>Works Offline</h3>
-                <p>Full PWA support. Use the app offline, sync when you're back online. No internet? No problem.</p>
+                <p>Your local library stays available offline. Optional cloud backup and AI features require an internet connection when you choose to use them.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
@@ -729,14 +743,18 @@
         <h2>Ready to Save Time Coding?</h2>
         <p>Join developers who are already using Snippet Bubbles to code faster.</p>
         <div class="hero-buttons" style="justify-content: center;">
-            <button class="button-primary">
-                <i class="fas fa-download"></i>
-                Install on Web
-            </button>
-            <button class="button-secondary">
+            <a class="button-primary" href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-github"></i>
+                View the Project
+            </a>
+            <span class="release-status" aria-label="Android release is in progress">
                 <i class="fab fa-android"></i>
-                Get on Play Store
-            </button>
+                Android Release in Progress
+            </span>
+            <span class="release-status" aria-label="PWA public release is in progress">
+                <i class="fas fa-globe"></i>
+                PWA Public Release in Progress
+            </span>
         </div>
     </section>
 
@@ -767,7 +785,7 @@
                 <div class="faq-toggle"><i class="fas fa-chevron-down"></i></div>
             </div>
             <div class="faq-answer">
-                <p>Absolutely. The web app is a Progressive Web App (PWA) that works completely offline. All your snippets are stored locally on your device.</p>
+                <p>Your local snippet library remains available offline after installation. Cloud backup, syncing, and AI requests need an internet connection when you choose to use them.</p>
             </div>
         </div>
         <div class="faq-item">
@@ -794,7 +812,7 @@
                 <div class="faq-toggle"><i class="fas fa-chevron-down"></i></div>
             </div>
             <div class="faq-answer">
-                <p>Currently, snippets are stored locally. We're working on optional cloud sync for users who want to access snippets across devices. Stay tuned!</p>
+                <p>Yes. Optional sign-in enables cloud backup and device sync. Offline edits are preserved; if two devices change the same item, the app keeps the conflicting versions for review rather than silently throwing one away.</p>
             </div>
         </div>
     </section>
@@ -806,28 +824,28 @@
                 <h4>Product</h4>
                 <a href="#features">Features</a>
                 <a href="#faq">FAQ</a>
-                <a href="#">Changelog</a>
-                <a href="#">Roadmap</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2/commits/main" target="_blank" rel="noopener noreferrer">Changelog</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2/issues" target="_blank" rel="noopener noreferrer">Roadmap &amp; Issues</a>
             </div>
             <div class="footer-section">
                 <h4>Resources</h4>
-                <a href="#">Documentation</a>
-                <a href="#">API Docs</a>
-                <a href="#">GitHub</a>
-                <a href="#">Support</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2#readme" target="_blank" rel="noopener noreferrer">Documentation</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2/blob/main/server/routers.ts" target="_blank" rel="noopener noreferrer">API Reference</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2/issues/new/choose" target="_blank" rel="noopener noreferrer">Support</a>
             </div>
             <div class="footer-section">
                 <h4>Legal</h4>
                 <a href="privacy.html">Privacy &amp; AI Data Use</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">License</a>
+                <a href="terms.html">Terms of Use</a>
+                <a href="license.html">License</a>
             </div>
             <div class="footer-section">
-                <h4>Connect</h4>
-                <a href="#">Twitter</a>
-                <a href="#">GitHub</a>
-                <a href="#">Discord</a>
-                <a href="#">Email</a>
+                <h4>Contribute</h4>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2" target="_blank" rel="noopener noreferrer">Repository</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2/issues/new/choose" target="_blank" rel="noopener noreferrer">Report a Problem</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2/pulls" target="_blank" rel="noopener noreferrer">Pull Requests</a>
+                <a href="https://github.com/CassieMarie0728/snippet-bubble-manager-v2/releases" target="_blank" rel="noopener noreferrer">Releases</a>
             </div>
         </div>
         <div class="footer-bottom">

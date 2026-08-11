@@ -24,9 +24,11 @@ import { startOAuthLogin } from "@/constants/oauth";
 import { parseSnippetImport, planSnippetImport, type DuplicateStrategy } from "@/lib/snippet-import";
 import { trpc } from "@/lib/trpc";
 import { useCallback, useState } from "react";
+import { useRouter } from "expo-router";
 
 export default function SettingsScreen() {
   const colors = useColors();
+  const router = useRouter();
   const { state, updateSettings, replaceSnippets } = useSnippets();
   const { settings, snippets } = state;
   const { themeMode, setThemeMode } = useThemeContext();
@@ -34,7 +36,13 @@ export default function SettingsScreen() {
   const [showAISettings, setShowAISettings] = useState(false);
   const [showAIPrivacy, setShowAIPrivacy] = useState(false);
   const aiQuotaQuery = trpc.ai.quota.useQuery(undefined, { staleTime: 60_000, retry: 1 });
+  const syncConflictsQuery = trpc.sync.conflicts.useQuery(undefined, {
+    enabled: cloudSyncAvailable,
+    staleTime: 30_000,
+    retry: 1,
+  });
   const aiQuota = aiQuotaQuery.data;
+  const unresolvedConflictCount = syncConflictsQuery.data?.length ?? 0;
 
   const handleThemeModeChange = useCallback(
     async (mode: "system" | "light" | "dark") => {
@@ -164,7 +172,7 @@ export default function SettingsScreen() {
     const result = await syncNow();
     if (!result) return;
     const conflictNote = result.conflicts
-      ? ` ${result.conflicts} timestamp conflict${result.conflicts === 1 ? " was" : "s were"} resolved safely.`
+      ? ` ${result.conflicts} conflict${result.conflicts === 1 ? " needs" : "s need"} your review before a winner is chosen.`
       : "";
     Alert.alert(
       "Cloud Sync Complete",
@@ -430,12 +438,35 @@ export default function SettingsScreen() {
             </Text>
           </Pressable>
 
-          {(lastSyncedAt || cloudSyncError || conflicts.length > 0) && (
-            <Text style={[styles.syncMeta, { color: cloudSyncError ? colors.error : colors.muted }]}>
+          {unresolvedConflictCount > 0 && (
+            <>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Review ${unresolvedConflictCount} unresolved sync conflict${unresolvedConflictCount === 1 ? "" : "s"}`}
+                onPress={() => router.push("/sync-conflicts" as any)}
+                style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
+              >
+                <IconSymbol name="exclamationmark.triangle.fill" size={18} color={colors.warning} />
+                <View style={styles.actionTextGroup}>
+                  <Text style={[styles.actionText, { color: colors.warning }]}>Review Sync Conflicts</Text>
+                  <Text style={[styles.actionDetail, { color: colors.muted }]}>Choose your edit or the cloud edit.</Text>
+                </View>
+                <Text style={[styles.conflictBadge, { backgroundColor: colors.warning + "22", color: colors.warning }]}>
+                  {unresolvedConflictCount}
+                </Text>
+              </Pressable>
+            </>
+          )}
+
+          {(lastSyncedAt || cloudSyncError || conflicts.length > 0 || unresolvedConflictCount > 0) && (
+            <Text style={[styles.syncMeta, { color: cloudSyncError ? colors.error : colors.muted }]}> 
               {cloudSyncError
                 ? cloudSyncError
-                : conflicts.length > 0
-                  ? `${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"} resolved by latest edit time.`
+                : unresolvedConflictCount > 0
+                  ? `${unresolvedConflictCount} conflict${unresolvedConflictCount === 1 ? " is" : "s are"} waiting for your choice.`
+                  : conflicts.length > 0
+                    ? `${conflicts.length} new conflict${conflicts.length === 1 ? " was" : "s were"} detected. Refresh or review when ready.`
                   : `Last synced ${new Date(lastSyncedAt!).toLocaleString()}`}
             </Text>
           )}
@@ -554,10 +585,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  actionText: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
+  actionText: { fontSize: 14, fontWeight: "600" },
+  actionTextGroup: { flex: 1, gap: 2 },
+  actionDetail: { fontSize: 12, lineHeight: 16 },
+  conflictBadge: { minWidth: 28, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 14, textAlign: "center", fontSize: 12, fontWeight: "700" },
   disabledAction: {
     opacity: 0.5,
   },

@@ -126,5 +126,5 @@ Same as Snippet Bubbles project.
 
 ---
 
-**Status:** ✅ Ready for production  
-**Last Updated:** June 8, 2026
+**Status:** Landing source is validated; GitHub Pages source configuration and the first signed Android release remain external release gates.  
+**Last Updated:** August 11, 2026

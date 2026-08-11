@@ -596,6 +596,48 @@ export async function listOwnedSyncConflicts(userId: number) {
     .orderBy(asc(syncConflicts.createdAt));
 }
 
+/**
+ * Resolves one stored optimistic-concurrency conflict for its owner. The chosen
+ * snapshot is written as a new snippet revision, so neither side disappears
+ * merely because a user makes a decision on another device.
+ */
+export async function resolveOwnedSyncConflict(
+  userId: number,
+  conflictId: number,
+  resolution: "local_wins" | "server_wins",
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+
+  const conflict = await db
+    .select()
+    .from(syncConflicts)
+    .where(and(eq(syncConflicts.id, conflictId), eq(syncConflicts.userId, userId), eq(syncConflicts.resolution, "unresolved")))
+    .limit(1);
+  if (!conflict[0]) throw new Error("Sync conflict not found, not owned by this account, or already resolved");
+  if (conflict[0].entityType !== "snippet") throw new Error("Only snippet conflicts can be resolved in this version");
+
+  const chosenPayload = (resolution === "local_wins" ? conflict[0].localPayload : conflict[0].serverPayload) as CloudSnippetInput;
+  if (!chosenPayload || chosenPayload.clientId !== conflict[0].entityClientId) {
+    throw new Error("The selected conflict snapshot is invalid");
+  }
+
+  const result = await upsertOwnedSnippet(userId, {
+    ...chosenPayload,
+    lastCopiedAt: chosenPayload.lastCopiedAt ? new Date(chosenPayload.lastCopiedAt) : null,
+  });
+  await db
+    .update(syncConflicts)
+    .set({ resolution, resolvedAt: new Date() })
+    .where(and(eq(syncConflicts.id, conflictId), eq(syncConflicts.userId, userId), eq(syncConflicts.resolution, "unresolved")));
+  await recordSyncChange(userId, "snippet", "upsert", chosenPayload.clientId, result.revision, {
+    operationId: `conflict:${conflictId}:${resolution}`,
+    payload: chosenPayload,
+  });
+
+  return { conflictId, resolution, clientId: chosenPayload.clientId, revision: result.revision };
+}
+
 function createShareToken() {
   return randomBytes(24).toString("base64url");
 }

@@ -38,6 +38,7 @@ const MAPPING = {
   "hand.raised.fill": "privacy-tip",
   "arrow.triangle.2.circlepath": "sync",
   "person.crop.circle.badge.plus": "person-add",
+  "exclamationmark.triangle.fill": "warning",
 } as IconMapping;
 
 /**

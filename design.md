@@ -34,6 +34,9 @@ Full-screen modal for creating or editing a snippet. Fields: title, language, ta
 ### Modal: Snippet Detail
 Tap a card to see full snippet with syntax-style code block, metadata, and action buttons (copy, edit, delete, favorite, pin).
 
+### Screen: Sync Conflicts
+An Android-first, full-screen conflict-review route for the small set of snippet edits that cannot be safely merged. It presents one conflict at a time, keeps both revisions intact until the user makes a clear choice, and never silently discards a version.
+
 ---
 
 ## Screen Details
@@ -105,6 +108,14 @@ Tap a card to see full snippet with syntax-style code block, metadata, and actio
   - Delete (destructive)
 - **Metadata footer:** Created date, last copied date
 
+### Sync Conflicts (Full Screen)
+- **Header:** Back affordance, title "Resolve Conflicts," and a clear count such as "2 to review."
+- **Conflict queue:** One conflict at a time rather than a dense desktop-style split view. Previous/next controls appear only when more than one unresolved conflict exists.
+- **Comparison control:** A visible two-option selector, "Your edit" and "Cloud edit," with each revision rendered in the same scrollable metadata-and-code layout. The selected revision is never altered by merely viewing it.
+- **Decision area:** Two full-width, 56dp action buttons pinned above the tab bar: **Use Your Edit** (crimson primary) and **Use Cloud Edit** (outlined secondary). Controls are separated by at least 8dp and announce their outcome to TalkBack.
+- **Offline behavior:** Existing conflict data remains readable offline. Resolution controls explain that a connection is required to finalize the choice, rather than pretending a network write succeeded.
+- **Safety:** Choosing a revision opens a concise confirmation dialog that names the winning revision and confirms the other revision will remain available in the resolved conflict record for audit history.
+
 ---
 
 ## Key User Flows
@@ -153,6 +164,14 @@ Tap a card to see full snippet with syntax-style code block, metadata, and actio
 5. Snippet removed, returns to Library
 6. Haptic medium feedback
 
+### Flow 7: Resolve a Sync Conflict
+1. User opens Settings and taps the visible conflict badge only when unresolved conflicts exist.
+2. The conflict screen shows the first conflict and defaults to the local "Your edit" revision.
+3. User switches between the clearly labelled local and cloud revisions to inspect title, language, tags, description, and code without accidental edits.
+4. User taps **Use Your Edit** or **Use Cloud Edit** in the thumb-reachable bottom action area.
+5. A confirmation dialog restates the selection; user confirms or cancels.
+6. Connected users see a success state and the next conflict; offline users retain the comparison and receive clear retry guidance.
+
 ---
 
 ## Navigation Structure
@@ -167,6 +186,7 @@ Tab Bar (3 tabs)
 Modal stack (presented over tabs):
 - Add/Edit Snippet
 - Snippet Detail
+- Sync Conflicts
 
 ---
 
@@ -189,3 +209,17 @@ Modal stack (presented over tabs):
 - **Swipe actions:** None in V1 (keep it simple)
 - **Pull to refresh:** Not needed (local data, always fresh)
 - **Search:** Debounced 150ms, filters as you type
+
+---
+
+## Conflict Resolution Mobile Checkpoint
+
+**Platform:** Android phones in portrait orientation plus the installed PWA. The feature uses Expo Router and React Native; no iOS-specific UI is planned because the product scope excludes iOS.
+
+**MFRI:** Platform clarity 5 + accessibility readiness 4 − interaction complexity 2 − performance risk 1 − offline dependence 2 = **4 (moderate)**. The original side-by-side comparison idea was deliberately simplified to one version at a time with a visible selector, which protects readability, memory, and one-handed use without hiding either choice.
+
+**Files reviewed:** `mobile-design-thinking.md`, `touch-psychology.md`, `mobile-performance.md`, `mobile-backend.md`, `mobile-testing.md`, `mobile-debugging.md`, and `platform-android.md`.
+
+**Principles applied:** Use 48dp-or-larger visible actions with 8dp separation; preserve every conflict payload until an explicit, confirmed selection; and render one conflict at a time with no animated or unbounded list work.
+
+**Anti-patterns avoided:** No gesture-only resolution, no automatic last-write-wins UI masquerading as a user choice, and no network-dependent blank state when cached conflict information is available.

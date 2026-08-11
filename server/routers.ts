@@ -222,6 +222,16 @@ export const appRouter = router({
 
     /** Exposes unresolved conflicts for a future user-facing resolution screen. */
     conflicts: protectedProcedure.query(({ ctx }) => db.listOwnedSyncConflicts(ctx.user.id)),
+
+    /** Applies an explicit owner decision; no timestamp heuristic silently chooses a side. */
+    resolve: protectedProcedure
+      .input(
+        z.object({
+          conflictId: z.number().int().positive(),
+          resolution: z.enum(["local_wins", "server_wins"]),
+        }),
+      )
+      .mutation(({ ctx, input }) => db.resolveOwnedSyncConflict(ctx.user.id, input.conflictId, input.resolution)),
   }),
 
   shares: router({

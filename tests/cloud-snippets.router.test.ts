@@ -7,6 +7,7 @@ const dbMocks = vi.hoisted(() => ({
   applySyncOperation: vi.fn(),
   pullSyncChanges: vi.fn(),
   listOwnedSyncConflicts: vi.fn(),
+  resolveOwnedSyncConflict: vi.fn(),
   createOwnedShare: vi.fn(),
   listOwnedShares: vi.fn(),
   revokeOwnedShare: vi.fn(),
@@ -140,6 +141,38 @@ describe("cloud snippet router", () => {
 
     await expect(caller.sync.pull({ cursor: 12, limit: 25 })).resolves.toMatchObject({ nextCursor: 12 });
     expect(dbMocks.pullSyncChanges).toHaveBeenCalledWith(user.id, 12, 25);
+  });
+
+  it("lists unresolved sync conflicts only for the authenticated owner", async () => {
+    dbMocks.listOwnedSyncConflicts.mockResolvedValueOnce([]);
+    const caller = appRouter.createCaller(createContext());
+
+    await expect(caller.sync.conflicts()).resolves.toEqual([]);
+    expect(dbMocks.listOwnedSyncConflicts).toHaveBeenCalledWith(user.id);
+  });
+
+  it("applies an explicit owner-scoped conflict choice", async () => {
+    dbMocks.resolveOwnedSyncConflict.mockResolvedValueOnce({
+      conflictId: 7,
+      resolution: "local_wins",
+      clientId: snippetInput.clientId,
+      revision: 3,
+    });
+    const caller = appRouter.createCaller(createContext());
+
+    await expect(caller.sync.resolve({ conflictId: 7, resolution: "local_wins" })).resolves.toMatchObject({
+      revision: 3,
+    });
+    expect(dbMocks.resolveOwnedSyncConflict).toHaveBeenCalledWith(user.id, 7, "local_wins");
+  });
+
+  it("rejects unauthenticated conflict review and resolution", async () => {
+    const caller = appRouter.createCaller(createContext(false));
+
+    await expect(caller.sync.conflicts()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(caller.sync.resolve({ conflictId: 7, resolution: "server_wins" })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
   });
 
   it("creates durable shares only for the authenticated owner", async () => {

@@ -101,6 +101,10 @@ export default function RootLayout() {
                       name="snippet/edit"
                       options={{ presentation: "modal" }}
                     />
+                    <Stack.Screen
+                      name="sync-conflicts"
+                      options={{ presentation: "modal" }}
+                    />
                   </Stack>
                   <StatusBar style="auto" />
                 </CloudSyncProvider>

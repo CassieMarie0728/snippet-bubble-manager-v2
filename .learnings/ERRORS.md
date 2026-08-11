@@ -317,3 +317,265 @@ exit code 1 from the revised privacy disclosure verification command
 - Tags: static-validation, assertion
 
 ---
+
+## [ERR-20260811-GH-RAW-WORKFLOW] gh-api
+
+**Logged**: 2026-08-11T18:22:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: infra
+
+### Summary
+The GitHub CLI attempted to parse a raw workflow response as JSON during Pages-source inspection.
+
+### Error
+```
+invalid character 'a' in literal null (expecting 'u')
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:22:00Z
+- **Notes**: Retrieve the normal contents JSON and decode its `content` field instead of requesting a raw response through this command shape.
+
+### Metadata
+- Reproducible: yes
+- Related Files: .github/workflows/deploy-landing.yaml
+- Tags: github, api, workflow, pages
+
+---
+
+## [ERR-20260811-PAGES-PERMISSION] gh-api
+
+**Logged**: 2026-08-11T18:43:00Z
+**Priority**: high
+**Status**: pending
+**Area**: infra
+
+### Summary
+The repository integration can read Pages state and run deployments but cannot switch Pages from legacy branch publishing to the custom workflow.
+
+### Error
+```
+Resource not accessible by integration (HTTP 403)
+```
+
+### Context
+- Verified public Pages URL returned GitHub’s 404 page.
+- Pages is configured as `build_type: legacy` from `main` root, while the verified deployment workflow publishes `landing-page/` artifacts.
+
+### Suggested Fix
+Repository owner must open **Settings → Pages** and select **GitHub Actions** as the build and deployment source, or grant the integration permission to manage GitHub Pages settings.
+
+### Metadata
+- Reproducible: yes
+- Related Files: .github/workflows/deploy-landing.yaml
+- Tags: github, pages, permissions, deployment
+
+---
+
+## [ERR-20260811-LANDING-CTA-URL] curl-validation
+
+**Logged**: 2026-08-11T18:47:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: frontend
+
+### Summary
+The presumed public Manus app URL returned 404, and the validation loop did not exit on its failed HTTP status.
+
+### Error
+```
+404 https://snippetmgr-ev54bpnq.manus.space
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:47:00Z
+- **Notes**: Replace the dead web-app CTA with a verified repository destination and use an explicit failure flag in future multi-URL checks.
+
+### Metadata
+- Reproducible: yes
+- Related Files: landing-page/index.html
+- Tags: landing-page, cta, validation, deployment
+
+---
+
+## [ERR-20260811-PLAN-SAME-PHASE] plan-advance
+
+**Logged**: 2026-08-11T18:49:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: docs
+
+### Summary
+An additional plan advance targeted phase 4 even though the previous transition had already entered phase 4.
+
+### Error
+```
+Invalid phase advance: cannot advance to the same phase (phase 4).
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:49:00Z
+- **Notes**: Continue substantive work in the active final phase rather than issuing a duplicate transition.
+
+### Metadata
+- Reproducible: yes
+- Related Files: todo.md
+- Tags: planning, phase-transition
+
+---
+
+## [ERR-20260811-ROUTER-RANGE] file-read
+
+**Logged**: 2026-08-11T18:51:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+The initial router inspection requested lines beyond the current file length.
+
+### Error
+```
+Invalid view_range start 410: file has 279 lines.
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:51:00Z
+- **Notes**: Re-read the router from its valid lower range before editing.
+
+### Metadata
+- Reproducible: yes
+- Related Files: server/routers.ts
+- Tags: file-read, tooling, range
+
+---
+
+## [ERR-20260811-GREP-FILE-SCOPE] file-search
+
+**Logged**: 2026-08-11T18:52:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+The text-search helper requires a directory glob, not a direct file path.
+
+### Error
+```
+Search scope path is not a directory
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:52:00Z
+- **Notes**: Use direct file inspection for the known helper file or a directory glob for future text searches.
+
+### Metadata
+- Reproducible: yes
+- Related Files: server/db.ts
+- Tags: file-search, tooling, scope
+
+---
+
+## [ERR-20260811-CONFLICT-SCREEN-PATCH] implementation
+
+**Logged**: 2026-08-11T18:54:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: frontend
+
+### Summary
+The multi-file conflict-resolution change partially applied. The Settings hunk was ambiguous and the new screen requires stricter TypeScript narrowing around the selected revision payload.
+
+### Error
+```
+No replacement was performed: <Pressable> location was ambiguous.
+TS18047: selectedPayload is possibly null.
+```
+
+### Next Step
+Patch only the uniquely located Settings cloud-sync section and introduce a locally narrowed selected payload before computing its preview.
+
+### Metadata
+- Reproducible: yes
+- Related Files: app/(tabs)/settings.tsx, app/sync-conflicts.tsx
+- Tags: typescript, patching, conflict-resolution
+
+---
+
+## [ERR-20260811-SETTINGS-STYLE-COMMA] implementation
+
+**Logged**: 2026-08-11T18:55:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: frontend
+
+### Summary
+The targeted Settings update added style properties after an existing final style entry without the required separating comma.
+
+### Error
+```
+TS1005: ',' expected
+```
+
+### Next Step
+Inspect the affected style block, restore valid object punctuation, then rerun the type check before further feature validation.
+
+### Metadata
+- Reproducible: yes
+- Related Files: app/(tabs)/settings.tsx
+- Tags: typescript, stylesheet, syntax
+
+---
+
+## [ERR-20260811-BRACE-GLOB-SEARCH] file-search
+
+**Logged**: 2026-08-11T19:04:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+The repository text-search helper does not expand brace-style path groups.
+
+### Error
+```
+No text files found matching pattern with brace expansion.
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T19:04:00Z
+- **Notes**: Use a supported broad project glob and filter results by path instead.
+
+### Metadata
+- Reproducible: yes
+- Related Files: app, components, landing-page
+- Tags: file-search, glob, tooling
+
+---
+
+## [ERR-20260811-SHELL-HISTORY-EXPANSION] validation
+
+**Logged**: 2026-08-11T19:07:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+A double-quoted inline Node expression containing `!` was interpreted by Bash history expansion before Node executed.
+
+### Error
+```
+bash: event not found
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T19:07:00Z
+- **Notes**: Use a shell-safe single-quoted Node expression or avoid negation syntax in inline commands.
+
+### Metadata
+- Reproducible: yes
+- Related Files: scripts/build-android.sh, eas.json
+- Tags: shell, validation, history-expansion
+
+---

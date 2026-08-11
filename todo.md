@@ -132,15 +132,15 @@
 
 - [ ] Reconcile local repository state with GitHub and verify the live GitHub Pages source
 - [x] Decide and document the production database dialect and migration strategy
-- [ ] Replace unsupported cloud-sync claims with verified product status until server sync ships
+- [x] Replace unsupported cloud-sync claims with verified product status and explicit conflict-review behavior
 - [x] Create authenticated server-side snippet, category, collection, version, and share data models
 - [x] Add protected cloud snippet CRUD with input bounds, ownership-scoped database predicates, and router tests
 - [x] Add manual local-first backup controls, OAuth entry point, deterministic merge rules, and PWA build preservation
-- [ ] Add ownership-scoped API procedures and cross-user authorization tests
-- [ ] Build an offline-first client sync queue with cursor-based pull, push, and conflict handling
-- [ ] Replace temporary share links with durable, revocable server-backed shares
+- [x] Add ownership-scoped API procedures and cross-user authorization tests
+- [x] Build an offline-first client sync queue with cursor-based pull, push, and conflict handling
+- [x] Replace temporary share links with durable, revocable server-backed shares
 - [x] Add durable AI quotas, privacy disclosure, and request observability
-- [ ] Add file-based JSON import with validation, duplicate strategy, and recovery reporting
+- [x] Add file-based JSON import with validation, duplicate strategy, and recovery reporting
 - [ ] Verify GitHub Pages deployment and run a clean Android release-readiness build
 
 ## Critical Path Continuation
@@ -160,3 +160,8 @@
 - [x] Add privacy-safe AI request telemetry without storing prompt or snippet content
 - [x] Add in-app and landing-page disclosure explaining AI data use and limits
 - [x] Add AI quota status and clear retry guidance to the client
+- [ ] Reconcile the verified landing-page source with the configured GitHub Pages branch
+- [x] Replace or remove every placeholder landing-page link and verify each public destination
+- [x] Add a conflict-resolution screen that lets users compare and explicitly choose local or cloud edits
+- [ ] Rotate any previously exposed Android signing credential outside the repository before a release build
+- [x] Remove the tracked Android signing artifact and enforce a keystore ignore rule

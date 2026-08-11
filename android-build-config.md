@@ -1,233 +1,43 @@
-# Android Build Configuration
+# Android Release Configuration
 
-## Overview
-This document outlines the complete Android build setup for Snippet Bubbles, including signing configuration, Play Store metadata, and build instructions.
+## Current Release Path
 
-## Prerequisites
+Snippet Bubbles uses **Expo Application Services (EAS)** for Android distribution. This keeps signing credentials out of the repository and produces the correct artifact for each channel.
 
-1. **Android Studio** - Download from https://developer.android.com/studio
-2. **Java Development Kit (JDK)** - Version 11 or higher
-3. **Android SDK** - API 24+ (configured via Android Studio)
-4. **Keystore for signing** - Generated during first build
+| Goal | Command | Result |
+|---|---|---|
+| Internal device testing | `./scripts/build-android.sh apk` | Preview APK through the authorized EAS account |
+| Google Play submission | `./scripts/build-android.sh aab` | Production Android App Bundle (`.aab`) |
+| Native inspection or Android Studio work | `./scripts/build-android.sh local` | Generated native Android project; signing remains external |
 
-## Build Process
+## Signing Requirements
 
-### Step 1: Generate Signing Key
+Use the authorized Expo account’s EAS credential manager or an approved organization secret vault. Keystores, certificate fingerprints, aliases, passwords, and private paths must never be committed, pasted into documentation, or placed in the project directory.
 
-Create a keystore for signing the APK/AAB:
-
-```bash
-keytool -genkey -v -keystore snippet-bubbles.keystore \
-  -keyalg RSA -keysize 2048 -validity 10000 \
-  -alias snippet-bubbles-key
-```
-
-**When prompted, enter:**
-- Keystore password: [secure password]
-- Key password: [same as keystore password]
-- First and last name: Snippet Bubbles
-- Organizational unit: Development
-- Organization: Snippet Bubbles
-- City: [Your City]
-- State: [Your State]
-- Country: US
-
-**Save the keystore file securely** - you'll need it for all future builds.
-
-### Step 2: Build APK (for testing)
+Before the first release build, use the authorized Expo account to review or rotate the Android credential:
 
 ```bash
-eas build --platform android --local
+npx eas-cli@latest credentials --platform android
 ```
 
-Or using Expo CLI directly:
+If any signing material was previously exposed, rotate it before building. The correct outcome is a fresh, externally managed credential—not another local text file full of regrettable nonsense.
 
-```bash
-expo build:android -t apk
-```
+## Release Readiness Checklist
 
-### Step 3: Build App Bundle (for Play Store)
+- [ ] Authorized Expo/EAS account available
+- [ ] Android signing credential reviewed or rotated outside the repository
+- [ ] `eas.json` preview and production profiles reviewed
+- [ ] `pnpm check`, `pnpm test`, and `pnpm lint` pass locally
+- [ ] Preview APK tested on at least one physical Android device
+- [ ] Production AAB built through the authorized EAS account
+- [ ] Play Console listing uses the live privacy-policy URL
+- [ ] Android package ID and release version verified before upload
 
-```bash
-eas build --platform android --local --app-bundle
-```
+## Play Store Notes
 
-Or using Expo CLI:
+Publish an **AAB**, not an APK, to Google Play. Keep the first production rollout controlled, verify sign-in, backup/sync, AI quotas, conflict resolution, import/export, and offline behavior on a real Android device, then review Android vitals and crash reports before widening distribution.
 
-```bash
-expo build:android -t app-bundle
-```
+## Local Android Studio Option
 
-## Signing Configuration
+`./scripts/build-android.sh local` generates a native project for inspection or local testing. It does not authorize a release. Any local signing configuration must reference credentials held outside this repository and outside the generated project’s tracked files.
 
-The app is configured with the following package name:
-
-```
-space.manus.snippet.bubble.manager.t20260327210406
-```
-
-### Keystore Details
-
-**File:** `snippet-bubbles.keystore`
-**Alias:** `snippet-bubbles-key`
-**Validity:** 10,000 days (27+ years)
-
-### Signing Configuration in Gradle
-
-The signing is configured in `android/app/build.gradle`:
-
-```gradle
-signingConfigs {
-  release {
-    storeFile file('snippet-bubbles.keystore')
-    storePassword System.getenv('KEYSTORE_PASSWORD')
-    keyAlias System.getenv('KEY_ALIAS')
-    keyPassword System.getenv('KEY_PASSWORD')
-  }
-}
-
-buildTypes {
-  release {
-    signingConfig signingConfigs.release
-  }
-}
-```
-
-## Environment Variables
-
-Set these before building:
-
-```bash
-export KEYSTORE_PASSWORD="your_keystore_password"
-export KEY_ALIAS="snippet-bubbles-key"
-export KEY_PASSWORD="your_key_password"
-```
-
-## Play Store Configuration
-
-### App Details
-
-- **App Name:** Snippet Bubbles
-- **Package Name:** space.manus.snippet.bubble.manager.t20260327210406
-- **Category:** Productivity
-- **Content Rating:** Everyone (PEGI 3)
-- **Minimum API Level:** 24 (Android 7.0)
-- **Target API Level:** 34 (Android 14)
-
-### Required Screenshots
-
-For Play Store listing, you'll need:
-
-1. **Phone Screenshots** (1080x1920 px, min 2, max 8):
-   - Library screen with snippets
-   - AI generation screen
-   - Snippet detail with AI features
-   - Settings with AI personality options
-
-2. **Tablet Screenshots** (1440x2560 px, optional):
-   - Same content as phone, optimized for larger screens
-
-### App Description
-
-```
-Snippet Bubbles is an AI-powered code snippet manager that helps developers 
-save, organize, and reuse code snippets across projects.
-
-Features:
-- 🤖 AI-powered snippet generation from natural language prompts
-- 💡 Explain any code snippet with AI
-- 🔄 Convert code between programming languages
-- 🏷️ Organize snippets with tags, categories, and collections
-- 🔍 Advanced search with regex and code content matching
-- 📱 Works offline with full PWA support
-- 🎨 Dark mode support
-- 📤 Export/import snippets as JSON
-- 🔗 Share snippets with QR codes
-- ✨ Customizable AI personality (tone, style, instructions)
-
-Available on web (PWA) and Android. No subscriptions, no tracking, open source.
-```
-
-### Privacy Policy
-
-Include a privacy policy URL in Play Store listing. For now, use:
-
-```
-https://snippet-bubbles.example.com/privacy
-```
-
-(Replace with actual URL when deployed)
-
-### Permissions
-
-The app requests the following permissions:
-
-- `POST_NOTIFICATIONS` - For push notifications (future feature)
-
-### Testing
-
-Before submitting to Play Store:
-
-1. **Test on multiple devices:**
-   - Minimum: Android 7.0 (API 24)
-   - Target: Android 14 (API 34)
-
-2. **Test all features:**
-   - Snippet CRUD operations
-   - AI generation, explanation, conversion
-   - Search and filtering
-   - Export/import
-   - Dark mode toggle
-   - Offline functionality
-
-3. **Test on different screen sizes:**
-   - Phone (5-6 inches)
-   - Tablet (7-10 inches)
-
-## Uploading to Play Store
-
-1. **Create Google Play Developer Account** - https://play.google.com/apps/publish
-2. **Create new app** in Play Console
-3. **Fill in app details** (name, description, category, etc.)
-4. **Upload signed AAB** to Play Console
-5. **Add screenshots and promotional graphics**
-6. **Fill in store listing** (description, privacy policy, etc.)
-7. **Set pricing** (free or paid)
-8. **Submit for review**
-
-## Troubleshooting
-
-### Build fails with "Keystore not found"
-
-Ensure the keystore file is in the correct location and the path is correct in build.gradle.
-
-### APK won't install on device
-
-- Ensure device is running Android 7.0 or higher
-- Uninstall any previous version of the app
-- Enable "Unknown sources" in device settings
-
-### App crashes on startup
-
-- Check Android Studio logcat for error messages
-- Ensure all required permissions are declared in AndroidManifest.xml
-- Verify backend API is accessible from the device
-
-## Version Management
-
-Current version: **1.0.0**
-
-To increment version for future releases:
-
-1. Update `versionCode` in `android/app/build.gradle`
-2. Update `versionName` in `android/app/build.gradle`
-3. Update `version` in `app.config.ts`
-4. Rebuild and test
-5. Submit to Play Store
-
-## Resources
-
-- [Android Developer Documentation](https://developer.android.com/docs)
-- [Google Play Console Help](https://support.google.com/googleplay/android-developer)
-- [Expo Android Build Documentation](https://docs.expo.dev/build/setup/)
-- [Android App Signing Guide](https://developer.android.com/studio/publish/app-signing)
