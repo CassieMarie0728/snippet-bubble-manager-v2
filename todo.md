@@ -127,3 +127,16 @@
 - [x] Add smooth scroll animations
 - [x] Create GitHub Actions deployment workflow
 - [x] Write landing page documentation
+
+## Priority Execution: Honest Cloud Foundation
+
+- [ ] Reconcile local repository state with GitHub and verify the live GitHub Pages source
+- [ ] Decide and document the production database dialect and migration strategy
+- [ ] Replace unsupported cloud-sync claims with verified product status until server sync ships
+- [ ] Create authenticated server-side snippet, category, collection, version, and share data models
+- [ ] Add ownership-scoped API procedures and cross-user authorization tests
+- [ ] Build an offline-first client sync queue with cursor-based pull, push, and conflict handling
+- [ ] Replace temporary share links with durable, revocable server-backed shares
+- [ ] Add durable AI quotas, privacy disclosure, and request observability
+- [ ] Add file-based JSON import with validation, duplicate strategy, and recovery reporting
+- [ ] Verify GitHub Pages deployment and run a clean Android release-readiness build
