@@ -22,6 +22,7 @@ import { AIPersonalitySettings } from "@/components/ai-personality-settings";
 import { useCloudSync } from "@/lib/cloud-sync-context";
 import { startOAuthLogin } from "@/constants/oauth";
 import { parseSnippetImport, planSnippetImport, type DuplicateStrategy } from "@/lib/snippet-import";
+import { trpc } from "@/lib/trpc";
 import { useCallback, useState } from "react";
 
 export default function SettingsScreen() {
@@ -31,6 +32,9 @@ export default function SettingsScreen() {
   const { themeMode, setThemeMode } = useThemeContext();
   const { available: cloudSyncAvailable, syncing, lastSyncedAt, conflicts, error: cloudSyncError, syncNow } = useCloudSync();
   const [showAISettings, setShowAISettings] = useState(false);
+  const [showAIPrivacy, setShowAIPrivacy] = useState(false);
+  const aiQuotaQuery = trpc.ai.quota.useQuery(undefined, { staleTime: 60_000, retry: 1 });
+  const aiQuota = aiQuotaQuery.data;
 
   const handleThemeModeChange = useCallback(
     async (mode: "system" | "light" | "dark") => {
@@ -280,7 +284,23 @@ export default function SettingsScreen() {
 
         {/* AI Personality Section */}
         <Text style={[styles.sectionTitle, { color: colors.muted }]}>AI ASSISTANT</Text>
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>AI Usage</Text>
+            <Text style={[styles.rowValue, { color: aiQuota?.hourly.remaining === 0 ? colors.warning : colors.primary }]}> 
+              {aiQuota
+                ? `${aiQuota.hourly.used}/${aiQuota.hourly.limit} this hour`
+                : aiQuotaQuery.isLoading
+                  ? "Checking…"
+                  : "Unavailable"}
+            </Text>
+          </View>
+          {aiQuota && (
+            <Text style={[styles.aiUsageMeta, { color: colors.muted }]}> 
+              {aiQuota.daily.used}/{aiQuota.daily.limit} today. Resets {new Date(aiQuota.hourly.resetsAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.
+            </Text>
+          )}
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <Pressable
             onPress={() => setShowAISettings(!showAISettings)}
             style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
@@ -290,6 +310,34 @@ export default function SettingsScreen() {
               {showAISettings ? "Hide AI Settings" : "Customize AI Personality"}
             </Text>
           </Pressable>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showAIPrivacy }}
+            accessibilityLabel="Show AI data use and privacy details"
+            onPress={() => setShowAIPrivacy(!showAIPrivacy)}
+            style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
+          >
+            <IconSymbol name="hand.raised.fill" size={18} color={colors.primary} />
+            <Text style={[styles.actionText, { color: colors.primary }]}> 
+              {showAIPrivacy ? "Hide AI Data Use Details" : "AI Data Use & Privacy"}
+            </Text>
+          </Pressable>
+          {showAIPrivacy && (
+            <View style={[styles.aiPrivacyNotice, { borderTopColor: colors.border }]}> 
+              <Text style={[styles.aiPrivacyTitle, { color: colors.foreground }]}>What the AI receives</Text>
+              <Text style={[styles.aiPrivacyCopy, { color: colors.muted }]}> 
+                When you use an AI action, the prompt, code or snippet text you include, and AI personality instructions are sent to the built-in AI service to produce your response. Don’t send passwords, API keys, or personal information.
+              </Text>
+              <Text style={[styles.aiPrivacyTitle, { color: colors.foreground }]}>What we retain</Text>
+              <Text style={[styles.aiPrivacyCopy, { color: colors.muted }]}> 
+                We retain only privacy-safe operational metadata for reliability and abuse protection: action type, time, character counts, response size, outcome, duration, and quota window. We do not retain your prompt, code, snippet contents, or raw IP address in this telemetry.
+              </Text>
+              <Text style={[styles.aiPrivacyCopy, { color: colors.muted }]}> 
+                AI use is limited per signed-in account. Before sign-in, a smaller temporary limit applies to an anonymized connection identifier.
+              </Text>
+            </View>
+          )}
         </View>
         {showAISettings && <AIPersonalitySettings />}
 
@@ -518,5 +566,26 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     paddingHorizontal: 16,
     paddingBottom: 14,
+  },
+  aiUsageMeta: {
+    fontSize: 12,
+    lineHeight: 17,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  aiPrivacyNotice: {
+    borderTopWidth: 0.5,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  aiPrivacyTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  aiPrivacyCopy: {
+    fontSize: 13,
+    lineHeight: 19,
   },
 });

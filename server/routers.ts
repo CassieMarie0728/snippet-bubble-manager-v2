@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { createHmac } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
+import { ENV } from "./_core/env";
 import * as db from "./db";
 
 const messageSchema = z.object({
@@ -12,28 +14,86 @@ const messageSchema = z.object({
   content: z.string().trim().min(1).max(12_000),
 });
 
-const aiRequestWindows = new Map<string, { count: number; resetAt: number }>();
-const AI_REQUEST_LIMIT = 24;
-const AI_REQUEST_WINDOW_MS = 60 * 60 * 1000;
+type AiProcedure = "generate" | "explain" | "convert" | "generateRelated";
 
-function enforceAiRateLimit(clientKey: string) {
-  const now = Date.now();
-  const existing = aiRequestWindows.get(clientKey);
-  const window = !existing || existing.resetAt <= now ? { count: 0, resetAt: now + AI_REQUEST_WINDOW_MS } : existing;
-  if (window.count >= AI_REQUEST_LIMIT) {
-    throw new TRPCError({
-      code: "TOO_MANY_REQUESTS",
-      message: "AI request limit reached. Try again after the current hour window resets.",
-    });
-  }
-  window.count += 1;
-  aiRequestWindows.set(clientKey, window);
+function getAiScope(ctx: {
+  user: { id: number } | null;
+  req: { ip?: string; socket?: { remoteAddress?: string | null } };
+}): db.AiQuotaScope {
+  const scopeType = ctx.user ? "account" : "anonymous";
+  const identity = ctx.user ? String(ctx.user.id) : ctx.req.ip || ctx.req.socket?.remoteAddress || "unknown";
+  const secret = ENV.cookieSecret || ENV.forgeApiKey || "snippet-bubbles-ai-quota-v1";
+  const scopeHash = createHmac("sha256", secret).update(`${scopeType}:${identity}`).digest("hex");
+  return { userId: ctx.user?.id ?? null, scopeType, scopeHash };
 }
 
-async function runAi(messages: Array<z.infer<typeof messageSchema>>, clientKey: string) {
-  enforceAiRateLimit(clientKey);
-  const response = await invokeLLM({ messages });
-  return response.choices[0]?.message?.content || "";
+function getCurrentHourStart(now: Date) {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()));
+}
+
+function getRetryMessage(quota: db.AiQuotaStatus, rejectedWindow: "hour" | "day" | null) {
+  const window = rejectedWindow === "day" ? quota.daily : quota.hourly;
+  const label = rejectedWindow === "day" ? "daily" : "hourly";
+  return `AI ${label} request limit reached. Try again after ${window.resetsAt.toISOString()}.`;
+}
+
+async function runAi({
+  procedure,
+  messages,
+  scope,
+}: {
+  procedure: AiProcedure;
+  messages: Array<z.infer<typeof messageSchema>>;
+  scope: db.AiQuotaScope;
+}) {
+  const startedAt = Date.now();
+  const requestedAt = new Date(startedAt);
+  const promptCharacters = messages.reduce((total, message) => total + message.content.length, 0);
+  const quotaReservation = await db.reserveAiQuota(scope, requestedAt);
+
+  if (!quotaReservation.allowed) {
+    await db.recordAiRequestTelemetry({
+      ...scope,
+      procedure,
+      outcome: "rejected",
+      promptCharacters,
+      messageCount: messages.length,
+      quotaWindowStart: getCurrentHourStart(requestedAt),
+      failureCode: quotaReservation.rejectedWindow === "day" ? "DAILY_QUOTA_EXCEEDED" : "HOURLY_QUOTA_EXCEEDED",
+    });
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: getRetryMessage(quotaReservation.quota, quotaReservation.rejectedWindow),
+    });
+  }
+
+  try {
+    const response = await invokeLLM({ messages });
+    const content = response.choices[0]?.message?.content || "";
+    await db.recordAiRequestTelemetry({
+      ...scope,
+      procedure,
+      outcome: "succeeded",
+      promptCharacters,
+      messageCount: messages.length,
+      responseCharacters: content.length,
+      durationMs: Math.min(Date.now() - startedAt, 3_600_000),
+      quotaWindowStart: getCurrentHourStart(requestedAt),
+    });
+    return content;
+  } catch (error) {
+    await db.recordAiRequestTelemetry({
+      ...scope,
+      procedure,
+      outcome: "failed",
+      promptCharacters,
+      messageCount: messages.length,
+      durationMs: Math.min(Date.now() - startedAt, 3_600_000),
+      quotaWindowStart: getCurrentHourStart(requestedAt),
+      failureCode: error instanceof TRPCError ? error.code : "PROVIDER_ERROR",
+    });
+    throw error;
+  }
 }
 
 const cloudSnippetSchema = z.object({
@@ -193,23 +253,25 @@ export const appRouter = router({
       }),
   }),
 
-  // Public by design; prompts are bounded and rate-limited until account quotas are introduced.
+  // AI prompts are bounded; quotas and telemetry are durable and content-free.
   ai: router({
+    quota: publicProcedure.query(({ ctx }) => db.getAiQuotaStatus(getAiScope(ctx))),
+
     generate: publicProcedure
       .input(z.object({ messages: z.array(messageSchema).min(1).max(20) }))
-      .mutation(({ ctx, input }) => runAi(input.messages, ctx.req.ip ?? "unknown")),
+      .mutation(({ ctx, input }) => runAi({ procedure: "generate", messages: input.messages, scope: getAiScope(ctx) })),
 
     explain: publicProcedure
       .input(z.object({ messages: z.array(messageSchema).min(1).max(20) }))
-      .mutation(({ ctx, input }) => runAi(input.messages, ctx.req.ip ?? "unknown")),
+      .mutation(({ ctx, input }) => runAi({ procedure: "explain", messages: input.messages, scope: getAiScope(ctx) })),
 
     convert: publicProcedure
       .input(z.object({ messages: z.array(messageSchema).min(1).max(20) }))
-      .mutation(({ ctx, input }) => runAi(input.messages, ctx.req.ip ?? "unknown")),
+      .mutation(({ ctx, input }) => runAi({ procedure: "convert", messages: input.messages, scope: getAiScope(ctx) })),
 
     generateRelated: publicProcedure
       .input(z.object({ messages: z.array(messageSchema).min(1).max(20) }))
-      .mutation(({ ctx, input }) => runAi(input.messages, ctx.req.ip ?? "unknown")),
+      .mutation(({ ctx, input }) => runAi({ procedure: "generateRelated", messages: input.messages, scope: getAiScope(ctx) })),
   }),
 });
 

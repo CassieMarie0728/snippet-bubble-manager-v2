@@ -239,3 +239,81 @@ Assert the outcome count and first imported record rather than an exact one-elem
 - **Notes**: Replaced the overly strict array assertion with targeted outcome and first-record assertions.
 
 ---
+
+## [ERR-20260811-SEARCH-SCOPE] file-search
+
+**Logged**: 2026-08-11T18:10:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: docs
+
+### Summary
+A targeted text search used a file path where the search interface expects a directory scope.
+
+### Error
+```
+Search scope path is not a directory: /home/ubuntu/snippet-bubble-manager/server/db.ts
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:10:00Z
+- **Notes**: The imports were inspected safely with a read-only command; use a direct file read or directory-scoped search next time.
+
+### Metadata
+- Reproducible: yes
+- Related Files: server/db.ts
+- Tags: tool-usage, search-scope
+
+---
+
+## [ERR-20260811-PRIVACY-ASSERT] static-verification
+
+**Logged**: 2026-08-11T18:17:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A static privacy-page verification used a phrase that did not exactly match the more detailed final copy.
+
+### Error
+```
+exit code 1 from the privacy disclosure verification command
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:17:00Z
+- **Notes**: Verify the required policy concepts with stable, shorter phrases rather than an entire prose sentence.
+
+### Metadata
+- Reproducible: yes
+- Related Files: landing-page/privacy.html
+- Tags: static-validation, assertion
+
+---
+
+## [ERR-20260811-PRIVACY-MARKER] static-verification
+
+**Logged**: 2026-08-11T18:18:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+A second static marker was still too exact for the privacy notice’s final copy.
+
+### Error
+```
+exit code 1 from the revised privacy disclosure verification command
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T18:18:00Z
+- **Notes**: Inspect the file content directly before selecting final stable validation markers.
+
+### Metadata
+- Reproducible: yes
+- Related Files: landing-page/privacy.html
+- Tags: static-validation, assertion
+
+---

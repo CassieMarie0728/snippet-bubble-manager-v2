@@ -244,6 +244,58 @@ export const syncConflicts = mysqlTable(
   ],
 );
 
+/**
+ * A durable fixed-window counter for AI access. `scopeHash` is an HMAC-derived
+ * identifier for either an account or an anonymous network actor; raw IP
+ * addresses and prompts are never stored here.
+ */
+export const aiQuotaWindows = mysqlTable(
+  "aiQuotaWindows",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").references(() => users.id, { onDelete: "set null" }),
+    scopeType: mysqlEnum("scopeType", ["account", "anonymous"]).notNull(),
+    scopeHash: varchar("scopeHash", { length: 64 }).notNull(),
+    windowType: mysqlEnum("windowType", ["hour", "day"]).default("hour").notNull(),
+    windowStart: timestamp("windowStart").notNull(),
+    requestCount: int("requestCount").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("ai_quota_scope_window_unique").on(table.scopeType, table.scopeHash, table.windowType, table.windowStart),
+    index("ai_quota_user_window_idx").on(table.userId, table.windowType, table.windowStart),
+  ],
+);
+
+/**
+ * Operational AI telemetry. This records only bounded metadata for debugging
+ * and abuse detection—never prompts, snippets, model responses, email, or IP.
+ */
+export const aiRequestEvents = mysqlTable(
+  "aiRequestEvents",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").references(() => users.id, { onDelete: "set null" }),
+    scopeType: mysqlEnum("scopeType", ["account", "anonymous"]).notNull(),
+    scopeHash: varchar("scopeHash", { length: 64 }).notNull(),
+    procedure: mysqlEnum("procedure", ["generate", "explain", "convert", "generateRelated"]).notNull(),
+    outcome: mysqlEnum("outcome", ["succeeded", "rejected", "failed"]).notNull(),
+    promptCharacters: int("promptCharacters").notNull(),
+    messageCount: int("messageCount").notNull(),
+    responseCharacters: int("responseCharacters"),
+    durationMs: int("durationMs"),
+    failureCode: varchar("failureCode", { length: 64 }),
+    quotaWindowStart: timestamp("quotaWindowStart").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => [
+    index("ai_events_user_created_idx").on(table.userId, table.createdAt),
+    index("ai_events_scope_created_idx").on(table.scopeType, table.scopeHash, table.createdAt),
+    index("ai_events_procedure_outcome_idx").on(table.procedure, table.outcome, table.createdAt),
+  ],
+);
+
 export type Category = typeof categories.$inferSelect;
 export type Snippet = typeof snippets.$inferSelect;
 export type SnippetVersion = typeof snippetVersions.$inferSelect;
@@ -252,3 +304,5 @@ export type Share = typeof shares.$inferSelect;
 export type SyncOperation = typeof syncOperations.$inferSelect;
 export type SyncChange = typeof syncChanges.$inferSelect;
 export type SyncConflict = typeof syncConflicts.$inferSelect;
+export type AiQuotaWindow = typeof aiQuotaWindows.$inferSelect;
+export type AiRequestEvent = typeof aiRequestEvents.$inferSelect;

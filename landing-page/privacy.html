@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Snippet Bubbles privacy and AI data-use notice." />
+  <title>Privacy &amp; AI Data Use | Snippet Bubbles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: dark; --bg: #0b0f0f; --surface: #151b1b; --border: #2d3838; --text: #e7e7e7; --muted: #a8a9ad; --accent: #981518; --accent-soft: #c94245; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Source Code Pro", "Courier New", monospace; line-height: 1.65; }
+    .shell { width: min(900px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+    .back { display: inline-flex; min-height: 48px; align-items: center; color: var(--accent-soft); font-weight: 700; text-decoration: none; }
+    .back:hover, .back:focus-visible { color: #fff; text-decoration: underline; }
+    .eyebrow { color: var(--accent-soft); font-size: .82rem; font-weight: 700; letter-spacing: .12em; margin: 30px 0 6px; }
+    h1, h2 { font-family: "Special Elite", Georgia, serif; line-height: 1.25; }
+    h1 { font-size: clamp(2rem, 7vw, 3.75rem); margin: 0 0 18px; }
+    h2 { font-size: 1.3rem; margin: 32px 0 10px; }
+    p, li { color: var(--muted); }
+    .lead { font-size: 1.08rem; color: var(--text); max-width: 72ch; }
+    .notice { margin: 28px 0; padding: 22px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; background: var(--surface); }
+    .notice strong { color: #fff; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    th, td { padding: 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+    th { color: #fff; background: #101515; }
+    tr:last-child td { border-bottom: 0; }
+    a { color: var(--accent-soft); }
+    footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: .88rem; }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <a class="back" href="index.html">← Back to Snippet Bubbles</a>
+    <p class="eyebrow">PRIVACY &amp; AI DATA USE</p>
+    <h1>No smoke. No mirrors. Here’s what the AI sees.</h1>
+    <p class="lead">Snippet Bubbles is local-first. Using the AI assistant is optional, but it is a server-assisted feature: the text you submit must leave your device so the built-in AI service can respond.</p>
+
+    <section class="notice" aria-label="Important privacy reminder">
+      <strong>Keep secrets out of AI prompts.</strong> Do not submit passwords, API keys, private credentials, personal information, or confidential material you are not authorized to share. Redact sensitive values before asking the assistant to generate, explain, convert, or improve code.
+    </section>
+
+    <h2>What the AI receives</h2>
+    <p>For an AI request, the built-in AI service receives the messages needed to answer: your prompt, any code or snippet text you include, and the personality instructions you configure. The service uses that information to generate the requested response. No external AI API key is required from you.</p>
+
+    <h2>What we retain for reliability and abuse protection</h2>
+    <table>
+      <thead><tr><th>We retain</th><th>We do not retain in AI telemetry</th></tr></thead>
+      <tbody>
+        <tr><td>Action type, timestamp, request and response character counts, outcome, duration, quota window, and an account-linked or anonymized identifier.</td><td>Your prompt text, code, snippets, model response text, email address, or raw IP address.</td></tr>
+      </tbody>
+    </table>
+    <p>The anonymized identifier is derived with a one-way server-side hash so anonymous requests can be rate-limited without keeping the raw network address in telemetry.</p>
+
+    <h2>Limits and accounts</h2>
+    <p>AI use is limited per signed-in account with hourly and daily windows. Before sign-in, a smaller limit applies to an anonymized connection identifier. The app displays the current hourly allowance in Settings so you are not left guessing why an AI request was rejected.</p>
+
+    <h2>Your snippets and cloud backup</h2>
+    <p>Your library works locally by default. If you choose to sign in and use cloud backup or sync, the records needed for that feature are stored in your account’s cloud data. Public sharing creates a revocable, optionally expiring snapshot of the snippet you choose to share.</p>
+
+    <h2>Questions</h2>
+    <p>If this notice needs to be clearer or you spot a claim that does not match the product’s behavior, please raise it through the project’s support channel. Honest copy beats pretty bullshit every time.</p>
+
+    <footer>Last updated: August 11, 2026. This plain-language notice describes the current product behavior and is not legal advice.</footer>
+  </main>
+</body>
+</html>

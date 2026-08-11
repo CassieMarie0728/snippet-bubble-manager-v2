@@ -2,6 +2,8 @@ import { and, asc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
+  aiQuotaWindows,
+  aiRequestEvents,
   categories,
   collections,
   InsertUser,
@@ -100,6 +102,160 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export type AiQuotaScope = {
+  userId: number | null;
+  scopeType: "account" | "anonymous";
+  scopeHash: string;
+};
+
+type AiQuotaWindowType = "hour" | "day";
+
+export type AiQuotaStatus = {
+  hourly: { limit: number; used: number; remaining: number; resetsAt: Date };
+  daily: { limit: number; used: number; remaining: number; resetsAt: Date };
+};
+
+export type AiRequestTelemetry = {
+  userId: number | null;
+  scopeType: "account" | "anonymous";
+  scopeHash: string;
+  procedure: "generate" | "explain" | "convert" | "generateRelated";
+  outcome: "succeeded" | "rejected" | "failed";
+  promptCharacters: number;
+  messageCount: number;
+  quotaWindowStart: Date;
+  responseCharacters?: number | null;
+  durationMs?: number | null;
+  failureCode?: string | null;
+};
+
+const AI_QUOTA_POLICY = {
+  account: { hour: 24, day: 200 },
+  anonymous: { hour: 8, day: 24 },
+} as const;
+
+function getAiWindowStart(now: Date, windowType: AiQuotaWindowType) {
+  if (windowType === "hour") {
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()));
+  }
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+}
+
+function getAiWindowResetAt(windowStart: Date, windowType: AiQuotaWindowType) {
+  const duration = windowType === "hour" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+  return new Date(windowStart.getTime() + duration);
+}
+
+function toQuotaWindowStatus(limit: number, used: number, windowStart: Date, windowType: AiQuotaWindowType) {
+  return {
+    limit,
+    used,
+    remaining: Math.max(0, limit - used),
+    resetsAt: getAiWindowResetAt(windowStart, windowType),
+  };
+}
+
+async function readAiQuotaStatus(scope: AiQuotaScope, now: Date): Promise<AiQuotaStatus> {
+  const database = await getDb();
+  if (!database) throw new Error("Database is not available");
+
+  const rows = await database
+    .select({ windowType: aiQuotaWindows.windowType, windowStart: aiQuotaWindows.windowStart, requestCount: aiQuotaWindows.requestCount })
+    .from(aiQuotaWindows)
+    .where(
+      and(
+        eq(aiQuotaWindows.scopeType, scope.scopeType),
+        eq(aiQuotaWindows.scopeHash, scope.scopeHash),
+        or(
+          and(
+            eq(aiQuotaWindows.windowType, "hour"),
+            eq(aiQuotaWindows.windowStart, getAiWindowStart(now, "hour")),
+          ),
+          and(
+            eq(aiQuotaWindows.windowType, "day"),
+            eq(aiQuotaWindows.windowStart, getAiWindowStart(now, "day")),
+          ),
+        ),
+      ),
+    );
+
+  const usage = new Map(rows.map((row) => [row.windowType, row.requestCount]));
+  const policy = AI_QUOTA_POLICY[scope.scopeType];
+  return {
+    hourly: toQuotaWindowStatus(policy.hour, usage.get("hour") ?? 0, getAiWindowStart(now, "hour"), "hour"),
+    daily: toQuotaWindowStatus(policy.day, usage.get("day") ?? 0, getAiWindowStart(now, "day"), "day"),
+  };
+}
+
+/**
+ * Atomically reserves one request from both fixed windows. The conditional
+ * upsert prevents a concurrent request from exceeding either policy limit.
+ */
+export async function reserveAiQuota(scope: AiQuotaScope, now = new Date()) {
+  const database = await getDb();
+  if (!database) throw new Error("Database is not available");
+
+  const policy = AI_QUOTA_POLICY[scope.scopeType];
+  const windows = ["hour", "day"] as const;
+  let rejectedWindow: AiQuotaWindowType | null = null;
+
+  await database.transaction(async (tx) => {
+    for (const windowType of windows) {
+      const limit = policy[windowType];
+      const windowStart = getAiWindowStart(now, windowType);
+      const result = await tx.execute(sql`
+        INSERT INTO ${aiQuotaWindows} (
+          ${aiQuotaWindows.userId},
+          ${aiQuotaWindows.scopeType},
+          ${aiQuotaWindows.scopeHash},
+          ${aiQuotaWindows.windowType},
+          ${aiQuotaWindows.windowStart},
+          ${aiQuotaWindows.requestCount}
+        ) VALUES (
+          ${scope.userId},
+          ${scope.scopeType},
+          ${scope.scopeHash},
+          ${windowType},
+          ${windowStart},
+          1
+        ) ON DUPLICATE KEY UPDATE
+          ${aiQuotaWindows.requestCount} = IF(${aiQuotaWindows.requestCount} < ${limit}, ${aiQuotaWindows.requestCount} + 1, ${aiQuotaWindows.requestCount})
+      `);
+      const header = (Array.isArray(result) ? result[0] : result) as { affectedRows?: number };
+      if (header.affectedRows === 0) {
+        rejectedWindow = windowType;
+        throw new Error("AI_QUOTA_EXCEEDED");
+      }
+    }
+  }).catch((error) => {
+    if (rejectedWindow && error instanceof Error && error.message === "AI_QUOTA_EXCEEDED") return;
+    throw error;
+  });
+
+  const quota = await readAiQuotaStatus(scope, now);
+  return { allowed: rejectedWindow === null, rejectedWindow, quota };
+}
+
+export async function getAiQuotaStatus(scope: AiQuotaScope, now = new Date()) {
+  return readAiQuotaStatus(scope, now);
+}
+
+/** Records operational metadata only. A telemetry write must never block AI output. */
+export async function recordAiRequestTelemetry(event: AiRequestTelemetry) {
+  try {
+    const database = await getDb();
+    if (!database) return;
+    await database.insert(aiRequestEvents).values({
+      ...event,
+      responseCharacters: event.responseCharacters ?? null,
+      durationMs: event.durationMs ?? null,
+      failureCode: event.failureCode ?? null,
+    });
+  } catch {
+    // Intentionally ignored: request observability cannot degrade the AI feature.
+  }
 }
 
 export type CloudSnippetInput = {

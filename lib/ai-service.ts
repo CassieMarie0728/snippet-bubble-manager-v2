@@ -115,11 +115,15 @@ async function callAIEndpoint(
       }),
     });
 
+    const data = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new Error(`AI API error: ${response.statusText}`);
+      const serverMessage = data?.error?.json?.message || data?.error?.message;
+      if (response.status === 429) {
+        throw new Error(serverMessage || "AI quota reached. Please wait until the displayed reset time and try again.");
+      }
+      throw new Error(serverMessage || `AI API error: ${response.statusText}`);
     }
 
-    const data = await response.json();
     // tRPC returns { result: { data: ... } }
     return data.result?.data || "";
   } catch (error) {
