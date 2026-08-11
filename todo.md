@@ -131,9 +131,11 @@
 ## Priority Execution: Honest Cloud Foundation
 
 - [ ] Reconcile local repository state with GitHub and verify the live GitHub Pages source
-- [ ] Decide and document the production database dialect and migration strategy
+- [x] Decide and document the production database dialect and migration strategy
 - [ ] Replace unsupported cloud-sync claims with verified product status until server sync ships
-- [ ] Create authenticated server-side snippet, category, collection, version, and share data models
+- [x] Create authenticated server-side snippet, category, collection, version, and share data models
+- [x] Add protected cloud snippet CRUD with input bounds, ownership-scoped database predicates, and router tests
+- [x] Add manual local-first backup controls, OAuth entry point, deterministic merge rules, and PWA build preservation
 - [ ] Add ownership-scoped API procedures and cross-user authorization tests
 - [ ] Build an offline-first client sync queue with cursor-based pull, push, and conflict handling
 - [ ] Replace temporary share links with durable, revocable server-backed shares

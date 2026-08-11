@@ -31,9 +31,13 @@ fi
 
 # Verify index.html has PWA meta tags
 if ! grep -q "manifest.json" dist/index.html; then
-  echo "⚠️  PWA meta tags not found in index.html"
-  echo "Copying index.html..."
-  cp public/index.html dist/
+  echo "⚠️  PWA manifest link not found; injecting it into Expo's generated entry..."
+  sed -i '/<\/head>/i\    <link rel="manifest" href="/manifest.json" />\n    <meta name="theme-color" content="#981518" />' dist/index.html
+fi
+
+if ! grep -q "service-worker.js" dist/index.html; then
+  echo "⚠️  Service worker registration not found; injecting it without replacing the app bundle..."
+  sed -i '/<\/body>/i\    <script>if ("serviceWorker" in navigator) { window.addEventListener("load", function () { navigator.serviceWorker.register("/service-worker.js").catch(function () {}); }); }</script>' dist/index.html
 fi
 
 echo "✅ PWA build complete!"

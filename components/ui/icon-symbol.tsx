@@ -35,6 +35,8 @@ const MAPPING = {
   "chevron.left.forwardslash.chevron.right": "code",
   "paperplane.fill": "send",
   "sparkles": "auto-awesome",
+  "arrow.triangle.2.circlepath": "sync",
+  "person.crop.circle.badge.plus": "person-add",
 } as IconMapping;
 
 /**

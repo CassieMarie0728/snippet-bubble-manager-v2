@@ -17,6 +17,8 @@ import { useSnippets } from "@/lib/snippet-context";
 import { useColors } from "@/hooks/use-colors";
 import { useThemeContext } from "@/lib/theme-provider";
 import { AIPersonalitySettings } from "@/components/ai-personality-settings";
+import { useCloudSync } from "@/lib/cloud-sync-context";
+import { startOAuthLogin } from "@/constants/oauth";
 import { useCallback, useState } from "react";
 
 export default function SettingsScreen() {
@@ -24,6 +26,7 @@ export default function SettingsScreen() {
   const { state, updateSettings, importSnippets } = useSnippets();
   const { settings, snippets } = state;
   const { themeMode, setThemeMode } = useThemeContext();
+  const { available: cloudSyncAvailable, syncing, lastSyncedAt, conflicts, error: cloudSyncError, syncNow } = useCloudSync();
   const [showAISettings, setShowAISettings] = useState(false);
 
   const handleThemeModeChange = useCallback(
@@ -151,6 +154,26 @@ export default function SettingsScreen() {
       Alert.alert("Import Failed", "Could not parse clipboard contents. Make sure it's valid JSON.");
     }
   }, [importSnippets]);
+
+  const handleCloudSync = useCallback(async () => {
+    const result = await syncNow();
+    if (!result) return;
+    const conflictNote = result.conflicts
+      ? ` ${result.conflicts} timestamp conflict${result.conflicts === 1 ? " was" : "s were"} resolved safely.`
+      : "";
+    Alert.alert(
+      "Cloud Sync Complete",
+      `${result.uploaded} local snippet${result.uploaded === 1 ? " was" : "s were"} backed up.${conflictNote}`,
+    );
+  }, [syncNow]);
+
+  const handleCloudSignIn = useCallback(async () => {
+    try {
+      await startOAuthLogin();
+    } catch {
+      Alert.alert("Sign-in Unavailable", "Could not open the secure sign-in flow. Please try again shortly.");
+    }
+  }, []);
 
   const bubbleSizes: Array<"small" | "medium" | "large"> = ["small", "medium", "large"];
   const defaultViews: Array<"pinned" | "recent"> = ["pinned", "recent"];
@@ -318,6 +341,57 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Cloud Sync Section */}
+        <Text style={[styles.sectionTitle, { color: colors.muted }]}>CLOUD SYNC</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.row}>
+            <Text style={[styles.rowLabel, { color: colors.foreground }]}>Device Backup</Text>
+            <Text style={[styles.rowValue, { color: cloudSyncAvailable ? colors.success : colors.muted }]}>
+              {syncing ? "Syncing…" : cloudSyncAvailable ? "Ready" : "Sign in required"}
+            </Text>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          {!cloudSyncAvailable && (
+            <>
+              <Pressable
+                onPress={handleCloudSignIn}
+                style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
+              >
+                <IconSymbol name="person.crop.circle.badge.plus" size={18} color={colors.primary} />
+                <Text style={[styles.actionText, { color: colors.primary }]}>Sign In to Enable Backup</Text>
+              </Pressable>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            </>
+          )}
+
+          <Pressable
+            disabled={!cloudSyncAvailable || syncing}
+            onPress={handleCloudSync}
+            style={({ pressed }) => [
+              styles.actionRow,
+              (!cloudSyncAvailable || syncing) && styles.disabledAction,
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <IconSymbol name="arrow.triangle.2.circlepath" size={18} color={colors.primary} />
+            <Text style={[styles.actionText, { color: colors.primary }]}>
+              {syncing ? "Syncing Your Library…" : "Sync This Device"}
+            </Text>
+          </Pressable>
+
+          {(lastSyncedAt || cloudSyncError || conflicts.length > 0) && (
+            <Text style={[styles.syncMeta, { color: cloudSyncError ? colors.error : colors.muted }]}>
+              {cloudSyncError
+                ? cloudSyncError
+                : conflicts.length > 0
+                  ? `${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"} resolved by latest edit time.`
+                  : `Last synced ${new Date(lastSyncedAt!).toLocaleString()}`}
+            </Text>
+          )}
+        </View>
+
         {/* Data Section */}
         <Text style={[styles.sectionTitle, { color: colors.muted }]}>DATA</Text>
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -434,5 +508,14 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 15,
     fontWeight: "500",
+  },
+  disabledAction: {
+    opacity: 0.5,
+  },
+  syncMeta: {
+    fontSize: 12,
+    lineHeight: 17,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
   },
 });

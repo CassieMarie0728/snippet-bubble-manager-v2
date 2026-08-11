@@ -175,7 +175,7 @@ export function AIPersonalitySettings() {
           Custom Instructions (Optional)
         </Text>
         <Text className="text-sm text-muted">
-          Add any special instructions for the AI (e.g., "Always include error handling")
+          Add any special instructions for the AI (e.g., “Always include error handling”)
         </Text>
 
         <TextInput

@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/lib/theme-provider";
 import { SnippetProvider } from "@/lib/snippet-context";
 import { CategoryCollectionProvider } from "@/lib/category-collection-context";
 import { AIPersonalityProvider } from "@/lib/ai-personality-context";
+import { CloudSyncProvider } from "@/lib/cloud-sync-context";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -88,19 +89,21 @@ export default function RootLayout() {
           <AIPersonalityProvider>
             <trpc.Provider client={trpcClient} queryClient={queryClient}>
               <QueryClientProvider client={queryClient}>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="oauth/callback" />
-                  <Stack.Screen
-                    name="snippet/[id]"
-                    options={{ presentation: "modal" }}
-                  />
-                  <Stack.Screen
-                    name="snippet/edit"
-                    options={{ presentation: "modal" }}
-                  />
-                </Stack>
-                <StatusBar style="auto" />
+                <CloudSyncProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="oauth/callback" />
+                    <Stack.Screen
+                      name="snippet/[id]"
+                      options={{ presentation: "modal" }}
+                    />
+                    <Stack.Screen
+                      name="snippet/edit"
+                      options={{ presentation: "modal" }}
+                    />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </CloudSyncProvider>
               </QueryClientProvider>
             </trpc.Provider>
           </AIPersonalityProvider>

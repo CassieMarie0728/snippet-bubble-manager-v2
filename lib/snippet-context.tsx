@@ -31,6 +31,7 @@ type Action =
   | { type: "MARK_COPIED"; id: string }
   | { type: "UPDATE_SETTINGS"; settings: Partial<AppSettings> }
   | { type: "IMPORT"; snippets: Snippet[] }
+  | { type: "RECONCILE"; snippets: Snippet[] }
   | { type: "DUPLICATE"; id: string };
 
 function reducer(state: SnippetState, action: Action): SnippetState {
@@ -71,6 +72,8 @@ function reducer(state: SnippetState, action: Action): SnippetState {
       return { ...state, settings: { ...state.settings, ...action.settings } };
     case "IMPORT":
       return { ...state, snippets: [...action.snippets, ...state.snippets] };
+    case "RECONCILE":
+      return { ...state, snippets: action.snippets };
     case "DUPLICATE": {
       const original = state.snippets.find((s) => s.id === action.id);
       if (!original) return state;
@@ -101,6 +104,7 @@ interface SnippetContextValue {
   duplicateSnippet: (id: string) => void;
   updateSettings: (settings: Partial<AppSettings>) => void;
   importSnippets: (snippets: Snippet[]) => void;
+  replaceSnippets: (snippets: Snippet[]) => void;
   getSnippetById: (id: string) => Snippet | undefined;
   searchSnippets: (query: string) => Snippet[];
   advancedSearch: (options: SearchOptions) => Snippet[];
@@ -203,6 +207,10 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "IMPORT", snippets });
   }, []);
 
+  const replaceSnippets = useCallback((snippets: Snippet[]) => {
+    dispatch({ type: "RECONCILE", snippets });
+  }, []);
+
   const getSnippetById = useCallback(
     (id: string) => stateRef.current.snippets.find((s) => s.id === id),
     []
@@ -284,6 +292,7 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     duplicateSnippet,
     updateSettings,
     importSnippets,
+    replaceSnippets,
     getSnippetById,
     searchSnippets,
     advancedSearch,
