@@ -1,187 +1,59 @@
-# Quick Start: Deploy Snippet Bubbles
+# Snippet Bubbles — Release Quick Start
 
-Everything is ready to deploy. Follow these steps to get live.
+> **Current status:** The application code has passed its automated checks, but the public GitHub Pages site and first signed Android release are not yet live. Treat this as a release-gate checklist, not a victory lap wearing a fake mustache.
 
----
+## 1. Publish the Landing Site Through GitHub Pages
 
-## 🌐 Deploy PWA to Vercel (5 minutes)
+The repository contains a GitHub Actions landing-page deployment workflow. The owner must first configure the repository’s **Pages** settings to use **GitHub Actions** as its source. The public Pages URLs currently return `404`, so do not announce them until that source switch and a successful deployment run are verified.
 
-### Step 1: Push to GitHub
+After the source switch:
 
-```bash
-cd /home/ubuntu/snippet-bubble-manager
-git add .
-git commit -m "Add PWA and Android build support"
-git push origin main
-```
+1. Restore the repository’s authorized GitHub connection.
+2. Push the reviewed landing workflow and landing-page files to the deployment branch.
+3. Confirm the GitHub Actions deployment succeeds.
+4. Confirm the root landing page and `privacy.html` return `200` before publishing either URL elsewhere.
 
-### Step 2: Connect to Vercel
+## 2. Build a Preview Android APK
 
-1. Go to https://vercel.com
-2. Click "New Project"
-3. Select your GitHub repository
-4. Vercel auto-detects Expo project
-5. Click "Deploy"
-
-**That's it!** Your PWA is live in ~2 minutes.
-
-### Step 3: Test Installation
-
-- **Desktop:** Open app URL → Click install icon in address bar
-- **Android:** Open app URL in Chrome → Menu → "Install app"
-- **iPhone:** Open app URL in Safari → Share → "Add to Home Screen"
-
----
-
-## 🤖 Build Android APK/AAB (15 minutes)
-
-### Step 1: Set Environment Variables
+Android signing belongs in the authorized Expo Application Services account or an approved external secret manager—not in this repository.
 
 ```bash
-export KEYSTORE_PASSWORD="SnippetBubbles2026!"
-export KEY_ALIAS="snippet-bubbles-key"
-export KEY_PASSWORD="SnippetBubbles2026!"
-```
+# Review or rotate external Android credentials first.
+npx eas-cli@latest credentials --platform android
 
-### Step 2: Build APK (for testing)
-
-```bash
-cd /home/ubuntu/snippet-bubble-manager
+# Then start the internal-distribution Android build.
 ./scripts/build-android.sh apk
 ```
 
-This creates a signed APK you can test on Android devices.
+Install the EAS-provided APK on at least one physical Android device. Test sign-in, backup/sync, conflict resolution, AI quota behavior, import/export, and offline operation before requesting production distribution.
 
-### Step 3: Build App Bundle (for Play Store)
+## 3. Build the Production Android App Bundle
+
+After preview testing passes:
 
 ```bash
 ./scripts/build-android.sh aab
 ```
 
-This creates an App Bundle ready for Google Play Store submission.
+Download the resulting `.aab` from the authorized EAS build dashboard. Submit that bundle through the Google Play Console, along with accurate listing copy, screenshots, and the **live** privacy-policy URL.
 
----
+## Release Checklist
 
-## 📱 Upload to Google Play Store (30 minutes)
+| Gate | Required evidence |
+|---|---|
+| GitHub Pages | Source set to GitHub Actions; public landing and privacy URLs return `200` |
+| Repository access | Authorized GitHub connection restored; reviewed changes pushed |
+| Android signing | Previously exposed signing credential rotated externally; no credential files remain tracked |
+| Preview APK | Installed and tested on physical Android hardware |
+| Production AAB | Successful EAS production build and Play Console upload |
+| Store listing | Accurate feature claims, screenshots, and live privacy-policy URL |
 
-### Step 1: Create Developer Account
+## References
 
-1. Go to https://play.google.com/apps/publish
-2. Pay $25 one-time fee
-3. Complete account setup
+- [Deployment guide](DEPLOYMENT.md)
+- [Android release configuration](android-build-config.md)
+- [Android signing security notice](ANDROID_SIGNING_CREDENTIALS.md)
+- [Google Play Console](https://play.google.com/apps/publish)
 
-### Step 2: Create New App
-
-1. Click "Create app"
-2. Enter name: "Snippet Bubbles"
-3. Select category: "Productivity"
-4. Accept policies
-
-### Step 3: Upload App Bundle
-
-1. Go to "Release" → "Production"
-2. Click "Create new release"
-3. Upload the `.aab` file from build
-4. Review and confirm
-
-### Step 4: Add Store Listing
-
-1. Go to "Store listing"
-2. Add description:
-   ```
-   Snippet Bubbles is an AI-powered code snippet manager that helps 
-   developers save, organize, and reuse code snippets across projects.
-   
-   Features:
-   - 🤖 AI-powered snippet generation
-   - 💡 Explain any code snippet
-   - 🔄 Convert between programming languages
-   - 🏷️ Organize with tags and collections
-   - 🔍 Advanced search with regex
-   - 📱 Works offline (PWA)
-   - 🎨 Dark mode support
-   ```
-3. Add screenshots (min 2, max 8)
-4. Add app icon
-5. Add feature graphic
-
-### Step 5: Set Pricing
-
-1. Go to "Pricing & distribution"
-2. Select "Free"
-3. Choose countries
-
-### Step 6: Submit for Review
-
-1. Review all information
-2. Click "Submit for review"
-3. Google reviews within 24-48 hours
-
----
-
-## 📋 Checklist
-
-### PWA Deployment
-- [ ] Push code to GitHub
-- [ ] Connect to Vercel
-- [ ] Test installation on desktop
-- [ ] Test installation on Android
-- [ ] Test offline functionality
-- [ ] Verify all features work
-
-### Android Deployment
-- [ ] Generate signing key (✅ Done)
-- [ ] Build APK for testing
-- [ ] Test on Android device
-- [ ] Build App Bundle
-- [ ] Create Play Store account
-- [ ] Upload App Bundle
-- [ ] Add store listing
-- [ ] Add screenshots
-- [ ] Submit for review
-
----
-
-## 🔗 Important Links
-
-- **Vercel:** https://vercel.com
-- **GitHub:** https://github.com
-- **Google Play Console:** https://play.google.com/apps/publish
-- **Android Developer:** https://developer.android.com
-- **Deployment Guide:** See `DEPLOYMENT.md`
-- **Android Build Config:** See `android-build-config.md`
-- **Signing Credentials:** See `ANDROID_SIGNING_CREDENTIALS.md`
-
----
-
-## 🆘 Troubleshooting
-
-### PWA not installing
-- Ensure HTTPS is enabled
-- Check browser console for errors
-- Verify manifest.json is accessible
-
-### Android build fails
-- Verify Java is installed: `java -version`
-- Check Android SDK: `$ANDROID_HOME/tools/bin/sdkmanager --list`
-- Ensure environment variables are set
-
-### App crashes on startup
-- Check backend API is running
-- Verify database connection
-- Test on emulator first
-
----
-
-## 📞 Support
-
-For detailed instructions, see:
-- `DEPLOYMENT.md` - Complete deployment guide
-- `android-build-config.md` - Android-specific setup
-- `ANDROID_SIGNING_CREDENTIALS.md` - Signing key details
-
----
-
-**Status:** ✅ Ready for production deployment  
-**Version:** 1.0.0  
-**Last Updated:** June 8, 2026
+**Last updated:** 2026-08-11
+**Status:** **External release gates remain open.**

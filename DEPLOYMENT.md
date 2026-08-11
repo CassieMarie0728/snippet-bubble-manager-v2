@@ -116,12 +116,6 @@ netlify deploy --prod --dir=dist
    - Tap "Install app"
    - App installs to home screen
 
-3. **On iPhone/iPad:**
-   - Open the app URL in Safari
-   - Tap Share
-   - Tap "Add to Home Screen"
-   - App installs to home screen
-
 ### Verify PWA Features
 
 - **Offline:** Disconnect internet, app still works
@@ -135,44 +129,29 @@ netlify deploy --prod --dir=dist
 
 ### Prerequisites
 
-1. **Android Studio** - https://developer.android.com/studio
-2. **Java Development Kit (JDK)** - Version 11+
-3. **Android SDK** - API 24+ (installed via Android Studio)
-4. **Google Play Developer Account** - https://play.google.com/apps/publish ($25 one-time fee)
-5. **Signing key** - Generated locally (keep it safe!)
+1. **Authorized Expo/EAS account** - Required for managed Android signing and build access.
+2. **Android signing credential** - Reviewed or rotated in EAS or an approved external secret manager; never retained in this repository.
+3. **Google Play Developer Account** - https://play.google.com/apps/publish ($25 one-time fee).
+4. **Physical Android device** - Required for final pre-release validation.
 
-### Generate Signing Key
+### Configure Managed Signing
 
-Create a keystore for signing the app:
+Use the authorized EAS account to configure or rotate Android credentials interactively:
 
 ```bash
-keytool -genkey -v -keystore snippet-bubbles.keystore \
-  -keyalg RSA -keysize 2048 -validity 10000 \
-  -alias snippet-bubbles-key
+npx eas-cli@latest credentials --platform android
 ```
 
-When prompted:
-- **Keystore password:** Use a strong password (save it!)
-- **Key password:** Same as keystore password
-- **Name:** Snippet Bubbles
-- **Organization:** Your name or company
-- **City/State/Country:** Your location
-
-**⚠️ IMPORTANT:** Save the keystore file and password in a secure location. You'll need it for all future app updates.
+Do not generate a keystore into this repository, paste its values into environment files, or document fingerprints and passwords in Markdown. If any signing material was previously exposed, rotate it before continuing.
 
 ### Build APK (for Testing)
 
 ```bash
-# Set environment variables
-export KEYSTORE_PASSWORD="your_password"
-export KEY_ALIAS="snippet-bubbles-key"
-export KEY_PASSWORD="your_password"
-
-# Build APK
+# Start the EAS internal-distribution build
 ./scripts/build-android.sh apk
 ```
 
-This creates an APK file you can test on Android devices.
+EAS provides the download link when the authorized build completes. Install and test that artifact on a physical Android device before requesting a production build.
 
 **To install on a device:**
 
@@ -184,16 +163,11 @@ adb install path/to/app.apk
 ### Build App Bundle (for Play Store)
 
 ```bash
-# Set environment variables (same as above)
-export KEYSTORE_PASSWORD="your_password"
-export KEY_ALIAS="snippet-bubbles-key"
-export KEY_PASSWORD="your_password"
-
-# Build App Bundle
+# Start the EAS production build
 ./scripts/build-android.sh aab
 ```
 
-This creates an `.aab` file for uploading to Google Play Store.
+EAS produces the `.aab` in its build dashboard. Download it only after its signing configuration and release profile have been verified.
 
 ### Upload to Google Play Store
 
@@ -439,20 +413,16 @@ psql $DATABASE_URL -c "SELECT * FROM snippets LIMIT 1;"
 
 ---
 
-## Next Steps
+## Verified Release Gates
 
-1. ✅ Build PWA and deploy to Vercel/Netlify
-2. ✅ Generate signing key and build APK
-3. ✅ Test on Android devices
-4. ✅ Create Google Play Developer account
-5. ✅ Upload App Bundle to Play Store
-6. ✅ Add store listing and screenshots
-7. ✅ Submit for review
-8. ✅ Monitor reviews and ratings
-9. ✅ Plan future updates and features
+1. **GitHub Pages:** The public Pages URLs currently return `404`. The repository owner must switch Pages to the existing GitHub Actions deployment source and confirm the next workflow run publishes the landing artifact.
+2. **Repository authorization:** Authenticated remote reconciliation is currently blocked because the GitHub connector is disabled and cannot be enabled from this collaboration session.
+3. **Android signing:** Any previously exposed signing credential must be rotated outside the repository and stored in EAS or an approved external secret manager.
+4. **Android validation:** After rotation, create a preview APK, test it on physical Android hardware, and then authorize the first production EAS AAB build.
+5. **Store publication:** Upload the AAB, complete the Play Console listing with the live privacy-policy URL, and submit only after device testing passes.
 
 ---
 
 **Version:** 1.0.0  
-**Last Updated:** 2026-06-08  
-**Status:** Ready for Production
+**Last Updated:** 2026-08-11
+**Status:** Code hardening is validated; public Pages and signed Android distribution remain owner-authorized launch gates.

@@ -165,3 +165,5 @@
 - [x] Add a conflict-resolution screen that lets users compare and explicitly choose local or cloud edits
 - [ ] Rotate any previously exposed Android signing credential outside the repository before a release build
 - [x] Remove the tracked Android signing artifact and enforce a keystore ignore rule
+- [x] Audit remaining deployment configuration and distinguish code fixes from owner-authorized release actions
+- [ ] Restore GitHub connector authorization, switch Pages to the deployment workflow source, and verify the public Pages URLs return 200

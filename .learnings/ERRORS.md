@@ -579,3 +579,163 @@ bash: event not found
 - Tags: shell, validation, history-expansion
 
 ---
+
+## [ERR-20260811-GIT-REMOTE-CREDENTIALS] repository-audit
+
+**Logged**: 2026-08-11T19:12:00Z
+**Priority**: medium
+**Status**: pending
+**Area**: GitHub integration
+
+### Summary
+The local repository could not fetch its GitHub remote during the final deployment audit because the current credential was unavailable.
+
+### Error
+```
+fatal: invalid credentials Unable to locate credentials
+```
+
+### Impact
+Local-vs-remote reconciliation and authenticated workflow inspection are blocked until a repository-authorized GitHub credential is available again. No local code was overwritten or reset.
+
+### Next Step
+Use read-only public API checks where possible, then retry authenticated reconciliation after the project’s GitHub authorization is restored.
+
+### Metadata
+- Reproducible: unknown
+- Related Files: .git/config, .github/workflows/deploy-landing.yaml
+- Tags: github, credentials, deployment
+
+---
+
+## [ERR-20260811-CONNECTOR-CONFIG-RESTRICTED] repository-audit
+
+**Logged**: 2026-08-11T19:14:00Z
+**Priority**: medium
+**Status**: blocked
+**Area**: GitHub integration
+
+### Summary
+The current collaboration session cannot submit connector configuration changes, so the disabled GitHub integration cannot be enabled from this task.
+
+### Error
+```
+Collaboration sessions are not allowed to modify configuration via manus-config config.
+```
+
+### Impact
+Authenticated remote reconciliation remains blocked. The working tree and the public landing content can still be audited locally.
+
+### Required Action
+Enable the GitHub connector in a session that supports connector configuration, then rerun the repository reconciliation audit.
+
+### Metadata
+- Reproducible: yes
+- Related Files: .manus/config/config.json
+- Tags: github, connector, authorization
+
+---
+
+## [ERR-20260811-DEPLOYMENT-GREP-FILE-SCOPE] validation
+
+**Logged**: 2026-08-11T19:16:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+The repository search helper was given a direct file path instead of a directory glob.
+
+### Error
+```
+Search scope path is not a directory
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T19:16:00Z
+- **Notes**: Re-run the search through the repository directory scope with a filename filter in the expression where needed.
+
+### Metadata
+- Reproducible: yes
+- Related Files: DEPLOYMENT.md
+- Tags: file-search, tooling, validation
+
+---
+
+## [ERR-20260811-RELEASE-DOC-WHITESPACE] validation
+
+**Logged**: 2026-08-11T19:18:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: documentation
+
+### Summary
+Release-documentation edits introduced trailing whitespace that caused `git diff --check` to fail.
+
+### Error
+```
+trailing whitespace
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T19:18:00Z
+- **Notes**: Removed trailing Markdown line-break spaces and will rerun the complete repository safety check.
+
+### Metadata
+- Reproducible: yes
+- Related Files: DEPLOYMENT.md, QUICK_START_DEPLOYMENT.md
+- Tags: documentation, whitespace, validation
+
+---
+
+## [ERR-20260811-GENERATED-ARTIFACT-SCAN] validation
+
+**Logged**: 2026-08-11T19:19:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+A repository-wide documentation safety scan inspected a generated web bundle and reported platform strings from third-party runtime code as false positives.
+
+### Error
+```
+Generated dist bundle matched unsupported-platform text.
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T19:19:00Z
+- **Notes**: Exclude generated `dist` output and scan authored root documentation, source, and landing files only.
+
+### Metadata
+- Reproducible: yes
+- Related Files: dist, DEPLOYMENT.md, QUICK_START_DEPLOYMENT.md
+- Tags: validation, generated-artifact, false-positive
+
+---
+
+## [ERR-20260811-PLAN-ALREADY-FINAL] planning
+
+**Logged**: 2026-08-11T19:20:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: planning
+
+### Summary
+The task plan was already in its final validation phase when an additional advance was attempted.
+
+### Error
+```
+Invalid phase advance: cannot advance to the same phase.
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T19:20:00Z
+- **Notes**: Continue validation and checkpointing from the existing final phase instead of issuing another transition.
+
+### Metadata
+- Reproducible: yes
+- Related Files: task plan
+- Tags: planning, phase-transition
+
+---
