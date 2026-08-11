@@ -179,3 +179,4 @@
 - [ ] Create and verify an EAS preview APK for physical-device testing
 - [ ] Run and document release-candidate checks for sync conflicts, AI quotas, import/export, and offline behavior
 - [x] Set the EAS app-version-source explicitly to remove the preview-build deprecation warning
+- [x] Remove the remaining Node module-format warning emitted during ESLint startup
