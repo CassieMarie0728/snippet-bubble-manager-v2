@@ -19,9 +19,6 @@ import {
   explainSnippet,
   convertSnippet,
   generateRelatedSnippets,
-  type ExplainSnippetResponse,
-  type ConvertSnippetResponse,
-  type GenerateSnippetResponse,
 } from "@/lib/ai-service";
 import type { Snippet } from "@/lib/types";
 import * as Haptics from "expo-haptics";
@@ -44,7 +41,7 @@ export function AISnippetExpansion({
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<string>("");
   const [showFullChat, setShowFullChat] = useState(false);
-  const [targetLanguage, setTargetLanguage] = useState("JavaScript");
+  const [targetLanguage] = useState("JavaScript");
 
   const handleExplain = async () => {
     try {

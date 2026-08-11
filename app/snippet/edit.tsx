@@ -22,7 +22,7 @@ export default function SnippetEditScreen() {
   const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
-  const { state, addSnippet, updateSnippet, deleteSnippet, getSnippetById } = useSnippets();
+  const { addSnippet, updateSnippet, deleteSnippet, getSnippetById } = useSnippets();
 
   const isEditing = !!params.id;
   const existing = isEditing ? getSnippetById(params.id!) : undefined;
@@ -46,7 +46,7 @@ export default function SnippetEditScreen() {
       setIsFavorite(existing.isFavorite);
       setIsPinned(existing.isPinned);
     }
-  }, [existing?.id]);
+  }, [existing]);
 
   const handleSave = useCallback(() => {
     if (!title.trim()) {
@@ -83,7 +83,7 @@ export default function SnippetEditScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     router.back();
-  }, [title, code, language, description, tagsText, isFavorite, isPinned, isEditing, params.id]);
+  }, [title, code, language, description, tagsText, isFavorite, isPinned, isEditing, params.id, addSnippet, updateSnippet, router]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(

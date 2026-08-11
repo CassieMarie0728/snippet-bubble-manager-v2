@@ -12,8 +12,6 @@ import { cn } from "@/lib/utils";
 import { IconSymbol } from "./ui/icon-symbol";
 import {
   getAllTemplates,
-  getTemplatesByCategory,
-  getTemplatesByDifficulty,
   searchTemplates,
   type SnippetTemplate,
 } from "@/lib/snippet-templates";

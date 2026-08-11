@@ -2,13 +2,12 @@
  * Library Screen - Enhanced with Categories, Collections, and Advanced Search
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   View,
   Text,
   ScrollView,
   TextInput,
-  Pressable,
   FlatList,
   Modal,
   TouchableOpacity,
@@ -24,15 +23,15 @@ import { cn } from "@/lib/utils";
 import type { Category, Collection, SearchOptions } from "@/lib/types";
 
 export default function LibraryScreen() {
-  const { state: snippetState, advancedSearch, getLanguages } = useSnippets();
-  const { state: categoryState, initializeDefaultCategories } = useCategoryCollection();
+  const { advancedSearch, getLanguages } = useSnippets();
+  const { initializeDefaultCategories } = useCategoryCollection();
   const colors = useColors();
+  const categoriesInitialized = useRef(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [useRegex, setUseRegex] = useState(false);
-  const [searchByCodeContent, setSearchByCodeContent] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showCategoryBrowser, setShowCategoryBrowser] = useState(false);
   const [showCollectionManager, setShowCollectionManager] = useState(false);
@@ -42,8 +41,10 @@ export default function LibraryScreen() {
 
   // Initialize default categories on mount
   useEffect(() => {
-    initializeDefaultCategories();
-  }, []);
+    if (categoriesInitialized.current) return;
+    categoriesInitialized.current = true;
+    void initializeDefaultCategories();
+  }, [initializeDefaultCategories]);
 
   // Perform advanced search
   const searchResults = useMemo(() => {
@@ -59,7 +60,7 @@ export default function LibraryScreen() {
     };
 
     return advancedSearch(options);
-  }, [searchQuery, filterLanguage, selectedCategory, selectedCollection, filterFavorite, filterPinned, useRegex]);
+  }, [searchQuery, filterLanguage, selectedCategory, selectedCollection, filterFavorite, filterPinned, useRegex, advancedSearch]);
 
   const languages = getLanguages();
 
@@ -195,29 +196,6 @@ export default function LibraryScreen() {
           </View>
         </View>
       )}
-    </View>
-  );
-
-  const renderSidebar = () => (
-    <View className="w-64 bg-surface border-r border-border">
-      {/* Category Browser */}
-      <View className="flex-1 border-b border-border">
-        <View className="px-4 py-3 border-b border-border">
-          <Text className="text-sm font-bold text-foreground">Categories</Text>
-        </View>
-        <CategoryBrowser
-          selectedCategoryId={selectedCategory?.id}
-          onSelectCategory={setSelectedCategory}
-        />
-      </View>
-
-      {/* Collection Manager */}
-      <View className="flex-1">
-        <CollectionManager
-          selectedCollectionId={selectedCollection?.id}
-          onSelectCollection={setSelectedCollection}
-        />
-      </View>
     </View>
   );
 

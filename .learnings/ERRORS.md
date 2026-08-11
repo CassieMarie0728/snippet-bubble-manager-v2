@@ -739,3 +739,211 @@ Invalid phase advance: cannot advance to the same phase.
 - Tags: planning, phase-transition
 
 ---
+
+## [ERR-20260811-GREP-DASH-PATTERN] validation
+
+**Logged**: 2026-08-11T20:03:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+A validation grep treated a dash-prefixed YAML list pattern as a command option.
+
+### Error
+```
+grep: invalid option
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:03:00Z
+- **Notes**: Use `grep --` before dash-prefixed literal patterns.
+
+### Metadata
+- Reproducible: yes
+- Related Files: .github/workflows/deploy-landing.yaml
+- Tags: grep, shell, validation
+
+---
+
+## [ERR-20260811-PNPM-OVERRIDE-LOCATION] dependency-audit
+
+**Logged**: 2026-08-11T20:06:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: package management
+
+### Summary
+The installed pnpm version ignored `pnpm.overrides` in `package.json`, so the initial critical-dependency pins would not take effect.
+
+### Error
+```
+The "pnpm" field in package.json is no longer read by pnpm.
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:06:00Z
+- **Notes**: Move overrides into the supported workspace configuration and regenerate the lockfile before rerunning the audit.
+
+### Metadata
+- Reproducible: yes
+- Related Files: package.json, pnpm-workspace.yaml, pnpm-lock.yaml
+- Tags: pnpm, overrides, dependency-audit
+
+---
+
+## [ERR-20260811-MATCH-GLOB-NULL-ARGS] dependency-audit
+
+**Logged**: 2026-08-11T20:07:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+The file-match request supplied null-only parameters that the matcher rejected.
+
+### Error
+```
+Wrong arguments for tool "match"
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:07:00Z
+- **Notes**: Use the file glob with its required fields only.
+
+### Metadata
+- Reproducible: yes
+- Related Files: pnpm-workspace.yaml
+- Tags: file-match, tooling, pnpm
+
+---
+
+## [ERR-20260811-PNPM-WORKSPACE-PACKAGES] dependency-audit
+
+**Logged**: 2026-08-11T20:08:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: package management
+
+### Summary
+The new pnpm workspace configuration declared overrides but omitted the required package scope.
+
+### Error
+```
+ERROR packages field missing or empty
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:08:00Z
+- **Notes**: Added the single-project workspace package entry before retrying lockfile generation.
+
+### Metadata
+- Reproducible: yes
+- Related Files: pnpm-workspace.yaml
+- Tags: pnpm, workspace, dependency-audit
+
+---
+
+## [ERR-20260811-PNPM-OFFLINE-TARBALL] dependency-audit
+
+**Logged**: 2026-08-11T20:09:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: package management
+
+### Summary
+The patched transitive dependency was not available in the local pnpm store, so the offline installation could not complete.
+
+### Error
+```
+ERR_PNPM_NO_OFFLINE_TARBALL
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:09:00Z
+- **Notes**: Complete a normal registry-backed install using the already reviewed lockfile, then validate the resolved versions and tests.
+
+### Metadata
+- Reproducible: yes
+- Related Files: pnpm-lock.yaml, pnpm-workspace.yaml
+- Tags: pnpm, offline, dependency-audit
+
+---
+
+## [ERR-20260811-EXPO-INSTALL-CONFIRM-FLAG] dependency-audit
+
+**Logged**: 2026-08-11T20:20:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: package management
+
+### Summary
+The Expo installer rejected a generic `--yes` flag while applying SDK compatibility fixes.
+
+### Error
+```
+CommandError: Unexpected: --yes
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:20:00Z
+- **Notes**: Use Expo’s supported non-interactive confirmation placement with the fix command.
+
+### Metadata
+- Reproducible: yes
+- Related Files: package.json, pnpm-lock.yaml
+- Tags: expo, package-management, compatibility
+
+---
+
+## [ERR-20260811-EXPO-PNPM-YES-FORWARDING] dependency-audit
+
+**Logged**: 2026-08-11T20:21:00Z
+**Priority**: medium
+**Status**: resolved
+**Area**: package management
+
+### Summary
+Expo forwarded a confirmation flag to pnpm as `pnpm add --yes`, but the installed pnpm version does not support that option.
+
+### Error
+```
+ERROR Unknown option: 'yes'
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:21:00Z
+- **Notes**: Apply Expo’s displayed compatible version set directly with pnpm, then re-run Expo compatibility verification.
+
+### Metadata
+- Reproducible: yes
+- Related Files: package.json, pnpm-lock.yaml
+- Tags: expo, pnpm, compatibility
+
+---
+
+## [ERR-20260811-PNPM-WORKSPACE-ROOT-ADD] dependency-audit
+
+**Logged**: 2026-08-11T20:22:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: package management
+
+### Summary
+After adding a single-project workspace file for overrides, pnpm required explicit confirmation before updating the root project dependencies.
+
+### Error
+```
+ERR_PNPM_ADDING_TO_ROOT
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T20:22:00Z
+- **Notes**: Re-run the reviewed update with the explicit workspace-root flag.
+
+### Metadata
+- Reproducible: yes
+- Related Files: pnpm-workspace.yaml, package.json
+- Tags: pnpm, workspace, dependency-audit
+
+---

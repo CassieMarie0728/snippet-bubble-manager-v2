@@ -11,7 +11,7 @@ export default function FavoritesScreen() {
   const colors = useColors();
   const { state, getFavorites } = useSnippets();
 
-  const favorites = useMemo(() => getFavorites(), [state.snippets]);
+  const favorites = useMemo(() => getFavorites(), [getFavorites]);
 
   const renderItem = useCallback(
     ({ item }: { item: Snippet }) => <SnippetCard snippet={item} />,

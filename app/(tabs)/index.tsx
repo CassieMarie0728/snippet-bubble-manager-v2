@@ -25,7 +25,7 @@ export default function LibraryScreen() {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
-  const languages = useMemo(() => getLanguages(), [state.snippets]);
+  const languages = useMemo(() => getLanguages(), [getLanguages]);
 
   const filteredSnippets = useMemo(() => {
     let results: Snippet[];
@@ -45,7 +45,7 @@ export default function LibraryScreen() {
       );
     }
     return results;
-  }, [query, activeFilter, state.snippets, searchSnippets, getSortedSnippets]);
+  }, [query, activeFilter, searchSnippets, getSortedSnippets]);
 
   const filters: { key: FilterType; label: string }[] = useMemo(
     () => [

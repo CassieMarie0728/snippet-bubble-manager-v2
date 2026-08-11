@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'landing-page/**'
+      - 'index.html'
       - '.github/workflows/deploy-landing.yaml'
   workflow_dispatch:
 

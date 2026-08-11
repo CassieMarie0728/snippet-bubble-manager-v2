@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable, FlatList } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { useCategoryCollection } from "@/lib/category-collection-context";
 import { useColors } from "@/hooks/use-colors";
 import { cn } from "@/lib/utils";

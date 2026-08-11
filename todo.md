@@ -167,3 +167,10 @@
 - [x] Remove the tracked Android signing artifact and enforce a keystore ignore rule
 - [x] Audit remaining deployment configuration and distinguish code fixes from owner-authorized release actions
 - [ ] Restore GitHub connector authorization, switch Pages to the deployment workflow source, and verify the public Pages URLs return 200
+- [ ] Verify the post-switch GitHub Pages deployment, including landing, privacy, terms, and license paths
+- [x] Add a root-level Pages compatibility entry for legacy branch publishing
+- [ ] Publish the root compatibility entry and reverify the GitHub Pages root and legal routes
+- [x] Remediate critical production dependency-audit findings with verified patched transitive versions
+- [x] Align the tRPC client packages with the server version to remove peer-dependency drift
+- [x] Align Expo SDK packages with the installed SDK’s compatible patch releases and revalidate the app
+- [x] Remove remaining lint warnings while preserving hook behavior and user-visible functionality

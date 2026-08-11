@@ -112,7 +112,7 @@ export default function SettingsScreen() {
           title: "Snippet Bubble Manager Export",
         });
       }
-    } catch (e) {
+    } catch {
       // Fallback: copy to clipboard
       await Clipboard.setStringAsync(json);
       Alert.alert("Exported", `${snippets.length} snippets copied to clipboard as JSON.`);
@@ -188,8 +188,8 @@ export default function SettingsScreen() {
     }
   }, []);
 
-  const bubbleSizes: Array<"small" | "medium" | "large"> = ["small", "medium", "large"];
-  const defaultViews: Array<"pinned" | "recent"> = ["pinned", "recent"];
+  const bubbleSizes: ("small" | "medium" | "large")[] = ["small", "medium", "large"];
+  const defaultViews: ("pinned" | "recent")[] = ["pinned", "recent"];
 
   return (
     <ScreenContainer>

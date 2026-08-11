@@ -8,7 +8,7 @@ import { View, Text, ScrollView, Pressable, TextInput, Modal, TouchableOpacity }
 import { useCategoryCollection } from "@/lib/category-collection-context";
 import { useColors } from "@/hooks/use-colors";
 import { cn } from "@/lib/utils";
-import type { Collection, CollectionInput } from "@/lib/types";
+import type { Collection } from "@/lib/types";
 import * as Haptics from "expo-haptics";
 
 interface CollectionManagerProps {
@@ -17,7 +17,7 @@ interface CollectionManagerProps {
 }
 
 export function CollectionManager({ onSelectCollection, selectedCollectionId }: CollectionManagerProps) {
-  const { state, addCollection, updateCollection, deleteCollection } = useCategoryCollection();
+  const { state, addCollection, deleteCollection } = useCategoryCollection();
   const colors = useColors();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
