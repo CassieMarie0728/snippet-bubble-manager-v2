@@ -15,6 +15,13 @@
       "when": 1786467673055,
       "tag": "0001_organic_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786469172319,
+      "tag": "0002_conscious_monster_badoon",
+      "breakpoints": true
     }
   ]
 }

@@ -216,6 +216,34 @@ export const syncChanges = mysqlTable(
   ],
 );
 
+/**
+ * Stores both sides of an optimistic-concurrency conflict. The server never
+ * discards a client edit merely because another device wrote first.
+ */
+export const syncConflicts = mysqlTable(
+  "syncConflicts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+    operationId: varchar("operationId", { length: 64 }).notNull(),
+    entityType: mysqlEnum("entityType", ["snippet", "category", "collection", "share"]).notNull(),
+    entityClientId: varchar("entityClientId", { length: 64 }).notNull(),
+    baseRevision: int("baseRevision").notNull(),
+    serverRevision: int("serverRevision").notNull(),
+    localPayload: json("localPayload").notNull(),
+    serverPayload: json("serverPayload").notNull(),
+    resolution: mysqlEnum("resolution", ["unresolved", "server_wins", "local_wins"])
+      .default("unresolved")
+      .notNull(),
+    resolvedAt: timestamp("resolvedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("sync_conflicts_user_operation_unique").on(table.userId, table.operationId),
+    index("sync_conflicts_user_resolution_idx").on(table.userId, table.resolution, table.createdAt),
+  ],
+);
+
 export type Category = typeof categories.$inferSelect;
 export type Snippet = typeof snippets.$inferSelect;
 export type SnippetVersion = typeof snippetVersions.$inferSelect;
@@ -223,3 +251,4 @@ export type Collection = typeof collections.$inferSelect;
 export type Share = typeof shares.$inferSelect;
 export type SyncOperation = typeof syncOperations.$inferSelect;
 export type SyncChange = typeof syncChanges.$inferSelect;
+export type SyncConflict = typeof syncConflicts.$inferSelect;

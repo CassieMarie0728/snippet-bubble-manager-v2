@@ -4,6 +4,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useAuth } from "@/hooks/use-auth";
 import { mergeCloudSnippets, toCloudSnippetInput, type SyncConflict } from "@/lib/cloud-sync";
 import { useSnippets } from "@/lib/snippet-context";
+import {
+  acknowledgeSyncOperations,
+  enqueueSnippetUpsert,
+  markSyncConflicts,
+  readSyncCursor,
+  readSyncQueue,
+  writeSyncCursor,
+} from "@/lib/sync-queue";
 import { trpc } from "@/lib/trpc";
 
 const LAST_SYNC_KEY = "@snippet_bubbles_last_cloud_sync";
@@ -30,7 +38,8 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
   const [conflicts, setConflicts] = useState<SyncConflict[]>([]);
   const [error, setError] = useState<string | null>(null);
   const listQuery = trpc.snippets.list.useQuery(undefined, { enabled: false, retry: 1 });
-  const upsertMutation = trpc.snippets.upsert.useMutation();
+  const syncPushMutation = trpc.sync.push.useMutation();
+  const utils = trpc.useUtils();
 
   useEffect(() => {
     AsyncStorage.getItem(LAST_SYNC_KEY)
@@ -56,23 +65,42 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
     setSyncing(true);
     setError(null);
     try {
-      const remoteResult = await listQuery.refetch();
-      if (remoteResult.error) throw remoteResult.error;
-      const plan = mergeCloudSnippets(snippetState.snippets, remoteResult.data ?? []);
-
-      for (const snippet of plan.upload) {
-        await upsertMutation.mutateAsync(toCloudSnippetInput(snippet));
+      const initialRemote = await listQuery.refetch();
+      if (initialRemote.error) throw initialRemote.error;
+      const initialPlan = mergeCloudSnippets(snippetState.snippets, initialRemote.data ?? []);
+      for (const snippet of initialPlan.upload) {
+        await enqueueSnippetUpsert(toCloudSnippetInput(snippet), 0);
       }
 
-      replaceSnippets(plan.merged);
+      const pending = (await readSyncQueue()).filter((operation) => operation.status === "pending");
+      const pushResult = pending.length
+        ? await syncPushMutation.mutateAsync({ operations: pending.map(({ createdAt: _createdAt, status: _status, ...operation }) => operation) })
+        : { results: [] };
+      const acknowledgements = pushResult.results
+        .filter((result) => result.status === "acknowledged")
+        .map((result) => result.operationId);
+      const conflictsFromPush = pushResult.results
+        .filter((result) => result.status === "conflict")
+        .map((result) => result.operationId);
+      await acknowledgeSyncOperations(acknowledgements);
+      await markSyncConflicts(conflictsFromPush);
+
+      const cursor = await readSyncCursor();
+      const pullResult = await utils.sync.pull.fetch({ cursor, limit: 50 });
+      await writeSyncCursor(pullResult.nextCursor);
+
+      const finalRemote = await listQuery.refetch();
+      if (finalRemote.error) throw finalRemote.error;
+      const finalPlan = mergeCloudSnippets(snippetState.snippets, finalRemote.data ?? []);
+      replaceSnippets(finalPlan.merged);
       const now = Date.now();
       setLastSyncedAt(now);
-      setConflicts(plan.conflicts);
+      setConflicts(finalPlan.conflicts);
       await AsyncStorage.setItem(LAST_SYNC_KEY, String(now));
       return {
-        uploaded: plan.upload.length,
-        downloaded: plan.merged.length - snippetState.snippets.length + plan.upload.length,
-        conflicts: plan.conflicts.length,
+        uploaded: acknowledgements.length,
+        downloaded: pullResult.changes.length,
+        conflicts: finalPlan.conflicts.length + conflictsFromPush.length,
       };
     } catch (syncError) {
       const message = syncError instanceof Error ? syncError.message : "Cloud sync failed. Your local library is safe.";
@@ -81,7 +109,7 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
     } finally {
       setSyncing(false);
     }
-  }, [authLoading, isAuthenticated, listQuery, replaceSnippets, snippetState.loaded, snippetState.snippets, upsertMutation]);
+  }, [authLoading, isAuthenticated, listQuery, replaceSnippets, snippetState.loaded, snippetState.snippets, syncPushMutation, utils.sync.pull]);
 
   const value = useMemo<CloudSyncContextValue>(
     () => ({

@@ -1,54 +1,26 @@
 #!/bin/bash
 
 # Android Build Script
-# Builds signed APK and App Bundle for Google Play Store
+# Starts current EAS builds or prepares a local Android Studio project.
 
 set -e
 
 echo "🤖 Building Snippet Bubbles for Android..."
 echo ""
 
-# Check for keystore
-if [ ! -f "snippet-bubbles.keystore" ]; then
-  echo "❌ Error: snippet-bubbles.keystore not found"
-  echo ""
-  echo "To generate a signing key, run:"
-  echo "  keytool -genkey -v -keystore snippet-bubbles.keystore \\"
-  echo "    -keyalg RSA -keysize 2048 -validity 10000 \\"
-  echo "    -alias snippet-bubbles-key"
-  echo ""
-  exit 1
-fi
-
-# Check for required environment variables
-if [ -z "$KEYSTORE_PASSWORD" ]; then
-  echo "❌ Error: KEYSTORE_PASSWORD environment variable not set"
-  exit 1
-fi
-
-if [ -z "$KEY_ALIAS" ]; then
-  echo "❌ Error: KEY_ALIAS environment variable not set"
-  exit 1
-fi
-
-if [ -z "$KEY_PASSWORD" ]; then
-  echo "❌ Error: KEY_PASSWORD environment variable not set"
-  exit 1
-fi
-
 # Determine build type
 BUILD_TYPE="${1:-apk}"
 
 if [ "$BUILD_TYPE" = "apk" ]; then
-  echo "📦 Building APK (for testing)..."
-  npx expo build:android -t apk
+  echo "📦 Starting an internal-distribution APK build through EAS..."
+  npx eas-cli@latest build --platform android --profile preview
   echo ""
   echo "✅ APK build complete!"
   echo "📥 Download from Expo build dashboard"
   
 elif [ "$BUILD_TYPE" = "aab" ] || [ "$BUILD_TYPE" = "app-bundle" ]; then
-  echo "📦 Building App Bundle (for Play Store)..."
-  npx expo build:android -t app-bundle
+  echo "📦 Starting a Play Store App Bundle build through EAS..."
+  npx eas-cli@latest build --platform android --profile production
   echo ""
   echo "✅ App Bundle build complete!"
   echo "📥 Download from Expo build dashboard"
@@ -60,7 +32,7 @@ elif [ "$BUILD_TYPE" = "local" ]; then
   echo "Prerequisites:"
   echo "  1. Android Studio installed"
   echo "  2. Android SDK configured"
-  echo "  3. Keystore file present"
+  echo "  3. Signing credentials configured locally or through EAS"
   echo ""
   
   # Check for Android SDK
@@ -71,22 +43,20 @@ elif [ "$BUILD_TYPE" = "local" ]; then
     exit 1
   fi
   
-  echo "Building locally..."
-  cd android
-  ./gradlew assembleRelease
-  cd ..
+  echo "Generating the native Android project for Android Studio..."
+  npx expo prebuild --platform android
+  echo "Open ./android in Android Studio, configure a release signing key outside Git, then build a release variant."
   
   echo ""
-  echo "✅ Local build complete!"
-  echo "📦 APK location: android/app/build/outputs/apk/release/"
+  echo "✅ Android Studio project generated."
   
 else
   echo "❌ Unknown build type: $BUILD_TYPE"
   echo ""
   echo "Usage:"
-  echo "  ./scripts/build-android.sh apk       - Build APK for testing"
-  echo "  ./scripts/build-android.sh aab       - Build App Bundle for Play Store"
-  echo "  ./scripts/build-android.sh local     - Build locally with Android Studio"
+  echo "  ./scripts/build-android.sh apk       - EAS internal APK build"
+  echo "  ./scripts/build-android.sh aab       - EAS production App Bundle build"
+  echo "  ./scripts/build-android.sh local     - Generate an Android Studio project"
   exit 1
 fi
 

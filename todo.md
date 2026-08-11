@@ -142,3 +142,17 @@
 - [ ] Add durable AI quotas, privacy disclosure, and request observability
 - [ ] Add file-based JSON import with validation, duplicate strategy, and recovery reporting
 - [ ] Verify GitHub Pages deployment and run a clean Android release-readiness build
+
+## Critical Path Continuation
+
+- [x] Persist client sync operations with idempotency keys and cursor-aware server acknowledgements
+- [x] Persist sync conflicts with recoverable local and remote versions for user review
+- [x] Add ownership-scoped category and collection server CRUD with cross-user denial tests
+- [x] Replace temporary snippet shares with durable tokens, revocation, expiry, and bounded views
+- [x] Add native document-picker and web file-picker JSON import with validation and duplicate decisions
+- [x] Remove sensitive auth debug logs and stop caching web identity data in browser storage
+- [ ] Add privacy-safe AI request telemetry and a user-facing data-use disclosure
+- [x] Verify the GitHub pull request outcome and PWA release artifact
+- [x] Replace obsolete Android build commands with EAS profiles and Android Studio project generation
+- [ ] Run a user-authorized Android release build with signing credentials outside the repository
+- [x] Verify the repaired PWA export preserves its app bundle, manifest, and service-worker registration

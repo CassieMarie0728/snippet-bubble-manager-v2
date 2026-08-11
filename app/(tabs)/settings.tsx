@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useSnippets } from "@/lib/snippet-context";
@@ -19,11 +21,12 @@ import { useThemeContext } from "@/lib/theme-provider";
 import { AIPersonalitySettings } from "@/components/ai-personality-settings";
 import { useCloudSync } from "@/lib/cloud-sync-context";
 import { startOAuthLogin } from "@/constants/oauth";
+import { parseSnippetImport, planSnippetImport, type DuplicateStrategy } from "@/lib/snippet-import";
 import { useCallback, useState } from "react";
 
 export default function SettingsScreen() {
   const colors = useColors();
-  const { state, updateSettings, importSnippets } = useSnippets();
+  const { state, updateSettings, replaceSnippets } = useSnippets();
   const { settings, snippets } = state;
   const { themeMode, setThemeMode } = useThemeContext();
   const { available: cloudSyncAvailable, syncing, lastSyncedAt, conflicts, error: cloudSyncError, syncNow } = useCloudSync();
@@ -106,54 +109,52 @@ export default function SettingsScreen() {
 
   const handleImport = useCallback(async () => {
     try {
-      const text = await Clipboard.getStringAsync();
-      if (!text) {
-        Alert.alert("Empty Clipboard", "Copy your JSON export to clipboard first, then try again.");
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/json", "text/json"],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.[0]) return;
+      const asset = result.assets[0];
+      if (asset.size && asset.size > 10 * 1024 * 1024) {
+        Alert.alert("File Too Large", "Imports are limited to 10 MB to protect your local library.");
         return;
       }
-
-      const data = JSON.parse(text);
-      if (!data.snippets || !Array.isArray(data.snippets)) {
-        Alert.alert("Invalid Format", "The clipboard doesn't contain valid snippet export data.");
+      const text =
+        Platform.OS === "web" && asset.file
+          ? await asset.file.text()
+          : await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+      const parsed = parseSnippetImport(JSON.parse(text));
+      if (!parsed.snippets.length) {
+        Alert.alert(
+          "Nothing Imported",
+          parsed.rejected[0]?.reason ?? "This file did not contain valid snippets.",
+        );
         return;
       }
-
-      const now = Date.now();
-      const imported = data.snippets.map((s: any, i: number) => ({
-        id: `import_${now}_${i}`,
-        title: s.title || "Untitled",
-        code: s.code || "",
-        language: s.language || "",
-        description: s.description || "",
-        tags: Array.isArray(s.tags) ? s.tags : s.tags_csv ? s.tags_csv.split(",").map((t: string) => t.trim()) : [],
-        isFavorite: !!s.isFavorite,
-        isPinned: !!s.isPinned,
-        lastCopiedAt: null,
-        createdAt: s.createdAt || now,
-        updatedAt: s.updatedAt || now,
-      }));
-
+      const applyImport = (strategy: DuplicateStrategy) => {
+        const plan = planSnippetImport(snippets, parsed, strategy);
+        replaceSnippets(plan.snippets);
+        if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        const recovery = plan.rejected.length ? ` ${plan.rejected.length} invalid record${plan.rejected.length === 1 ? " was" : "s were"} safely skipped.` : "";
+        Alert.alert(
+          "Import Complete",
+          `${plan.imported} added, ${plan.replaced} replaced, ${plan.copied} copied, ${plan.skipped} duplicate${plan.skipped === 1 ? "" : "s"} skipped.${recovery}`,
+        );
+      };
       Alert.alert(
         "Import Snippets",
-        `Found ${imported.length} snippets. Import them?`,
+        `${parsed.snippets.length} valid snippet${parsed.snippets.length === 1 ? "" : "s"} found. How should duplicate code be handled?`,
         [
           { text: "Cancel", style: "cancel" },
-          {
-            text: "Import",
-            onPress: () => {
-              importSnippets(imported);
-              if (Platform.OS !== "web") {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              }
-              Alert.alert("Done", `${imported.length} snippets imported successfully.`);
-            },
-          },
-        ]
+          { text: "Skip Duplicates", onPress: () => applyImport("skip") },
+          { text: "Keep Both", onPress: () => applyImport("copy") },
+          { text: "Replace Matches", style: "destructive", onPress: () => applyImport("replace") },
+        ],
       );
-    } catch (e) {
-      Alert.alert("Import Failed", "Could not parse clipboard contents. Make sure it's valid JSON.");
+    } catch {
+      Alert.alert("Import Failed", "Could not read this JSON file. Your current library was not changed.");
     }
-  }, [importSnippets]);
+  }, [replaceSnippets, snippets]);
 
   const handleCloudSync = useCallback(async () => {
     const result = await syncNow();
@@ -417,7 +418,7 @@ export default function SettingsScreen() {
             style={({ pressed }) => [styles.actionRow, pressed && { opacity: 0.7 }]}
           >
             <IconSymbol name="square.and.arrow.down" size={18} color={colors.primary} />
-            <Text style={[styles.actionText, { color: colors.primary }]}>Import from Clipboard</Text>
+            <Text style={[styles.actionText, { color: colors.primary }]}>Import JSON File</Text>
           </Pressable>
         </View>
 

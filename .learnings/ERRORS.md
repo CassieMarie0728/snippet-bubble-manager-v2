@@ -213,3 +213,29 @@ Use a user-authorized credential with the `workflows` permission, or have the re
 - Tags: github, actions, permissions, workflow
 
 ---
+
+## [ERR-20260811-IMPORT-ASSERT] vitest
+
+**Logged**: 2026-08-11T17:50:31-05:00
+**Priority**: low
+**Status**: resolved
+**Area**: tests
+
+### Summary
+An import-plan test incorrectly expected the copied result to contain only the new snippet, despite the strategy intentionally preserving the existing one.
+
+### Error
+The `toMatchObject` array assertion failed because the actual plan contained both the imported copy and the original snippet.
+
+### Suggested Fix
+Assert the outcome count and first imported record rather than an exact one-element array.
+
+### Metadata
+- Reproducible: yes
+- Related Files: lib/__tests__/snippet-import.test.ts
+
+### Resolution
+- **Resolved**: 2026-08-11T17:51:00-05:00
+- **Notes**: Replaced the overly strict array assertion with targeted outcome and first-record assertions.
+
+---
