@@ -17,12 +17,14 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useSnippets } from "@/lib/snippet-context";
 import { useColors } from "@/hooks/use-colors";
 import { LANGUAGES } from "@/lib/types";
+import { useToast } from "@/lib/toast-context";
 
 export default function SnippetEditScreen() {
   const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const { addSnippet, updateSnippet, deleteSnippet, getSnippetById } = useSnippets();
+  const { showToast } = useToast();
 
   const isEditing = !!params.id;
   const existing = isEditing ? getSnippetById(params.id!) : undefined;
@@ -82,8 +84,12 @@ export default function SnippetEditScreen() {
     if (Platform.OS !== "web") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+    showToast({
+      title: isEditing ? "Snippet updated" : "Snippet saved",
+      message: isEditing ? "Your changes are safely in the library." : "Your new snippet is ready to use.",
+    });
     router.back();
-  }, [title, code, language, description, tagsText, isFavorite, isPinned, isEditing, params.id, addSnippet, updateSnippet, router]);
+  }, [title, code, language, description, tagsText, isFavorite, isPinned, isEditing, params.id, addSnippet, updateSnippet, router, showToast]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(

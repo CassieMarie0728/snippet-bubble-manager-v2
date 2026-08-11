@@ -1002,3 +1002,35 @@ pnpm check, pnpm test, and pnpm lint passed; the final grep assertion returned e
 - Tags: expo, configuration, validation, grep
 
 ---
+
+## [ERR-20260811-ANDROID-PREVIEW-CORE-FLOWS] android-release
+
+**Logged**: 2026-08-11T18:35:00-05:00
+**Priority**: critical
+**Status**: in_progress
+**Area**: frontend
+
+### Summary
+The first signed Android preview exposed broken bottom-tab registration plus nonfunctional OAuth, cloud sync, and AI request paths.
+
+### Error
+```
+Index tab rendered as an unintended fifth tab with a missing icon.
+Sign-in did not enable cloud sync.
+AI requests did not complete on Android.
+```
+
+### Context
+- User-tested preview build identified the defects during physical-device validation.
+- Static inspection found native client helpers referencing unimported platform modules and relying on relative API URLs that do not resolve from an installed Android build.
+- The intended production API host responds over HTTPS and will be used as an explicit native fallback.
+
+### Suggested Fix
+Hide the legacy Index route from the visible tab bar, use a shared native-safe notification layer, restore missing native imports, configure an absolute production API base for installed builds, and call tRPC AI mutations through the configured client.
+
+### Metadata
+- Reproducible: yes
+- Related Files: app/(tabs)/_layout.tsx, app/(tabs)/library.tsx, constants/oauth.ts, lib/_core/api.ts, lib/_core/auth.ts, lib/ai-service.ts
+- Tags: android, oauth, cloud-sync, ai, navigation, preview
+
+---

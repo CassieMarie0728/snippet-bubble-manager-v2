@@ -12,6 +12,7 @@ import { SnippetProvider } from "@/lib/snippet-context";
 import { CategoryCollectionProvider } from "@/lib/category-collection-context";
 import { AIPersonalityProvider } from "@/lib/ai-personality-context";
 import { CloudSyncProvider } from "@/lib/cloud-sync-context";
+import { ToastProvider } from "@/lib/toast-context";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -90,23 +91,25 @@ export default function RootLayout() {
             <trpc.Provider client={trpcClient} queryClient={queryClient}>
               <QueryClientProvider client={queryClient}>
                 <CloudSyncProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="oauth/callback" />
-                    <Stack.Screen
-                      name="snippet/[id]"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="snippet/edit"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="sync-conflicts"
-                      options={{ presentation: "modal" }}
-                    />
-                  </Stack>
-                  <StatusBar style="auto" />
+                  <ToastProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="(tabs)" />
+                      <Stack.Screen name="oauth/callback" />
+                      <Stack.Screen
+                        name="snippet/[id]"
+                        options={{ presentation: "modal" }}
+                      />
+                      <Stack.Screen
+                        name="snippet/edit"
+                        options={{ presentation: "modal" }}
+                      />
+                      <Stack.Screen
+                        name="sync-conflicts"
+                        options={{ presentation: "modal" }}
+                      />
+                    </Stack>
+                    <StatusBar style="auto" />
+                  </ToastProvider>
                 </CloudSyncProvider>
               </QueryClientProvider>
             </trpc.Provider>

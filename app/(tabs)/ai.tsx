@@ -22,6 +22,7 @@ import { useSnippets } from "@/lib/snippet-context";
 import * as Haptics from "expo-haptics";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/lib/toast-context";
 
 const GENERATION_HISTORY_KEY = "ai_generation_history";
 
@@ -35,6 +36,7 @@ export default function AIScreen() {
   const colors = useColors();
   const { personality } = useAIPersonality();
   const { addSnippet } = useSnippets();
+  const { showToast } = useToast();
 
   const [prompt, setPrompt] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("JavaScript");
@@ -99,7 +101,9 @@ export default function AIScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       console.error("Error generating snippet:", error);
-      Alert.alert("Generation Failed", "Could not generate snippet. Please try again.");
+      const message = error instanceof Error ? error.message : "Could not generate snippet. Please try again.";
+      Alert.alert("Generation Failed", message);
+      showToast({ title: "AI request failed", message, tone: "error" });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsGenerating(false);
@@ -126,14 +130,14 @@ export default function AIScreen() {
 
       addSnippet(newSnippet);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Saved", "Snippet added to your library!");
+      showToast({ title: "Generated snippet saved", message: "It is now waiting in your library." });
       setGeneratedSnippet(null);
       setPrompt("");
     } catch (error) {
       console.error("Error saving snippet:", error);
       Alert.alert("Error", "Could not save snippet. Please try again.");
     }
-  }, [generatedSnippet, addSnippet]);
+  }, [generatedSnippet, addSnippet, showToast]);
 
   const handleClearHistory = () => {
     Alert.alert("Clear History", "Are you sure? This cannot be undone.", [

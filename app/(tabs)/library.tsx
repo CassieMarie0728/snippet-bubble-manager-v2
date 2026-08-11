@@ -10,9 +10,14 @@ import {
   TextInput,
   FlatList,
   Modal,
+  Platform,
+  Pressable,
   TouchableOpacity,
 } from "react-native";
+import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { ScreenContainer } from "@/components/screen-container";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SnippetCard } from "@/components/snippet-card";
 import { CategoryBrowser } from "@/components/category-browser";
 import { CollectionManager } from "@/components/collection-manager";
@@ -26,6 +31,7 @@ export default function LibraryScreen() {
   const { advancedSearch, getLanguages } = useSnippets();
   const { initializeDefaultCategories } = useCategoryCollection();
   const colors = useColors();
+  const router = useRouter();
   const categoriesInitialized = useRef(false);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,6 +69,13 @@ export default function LibraryScreen() {
   }, [searchQuery, filterLanguage, selectedCategory, selectedCollection, filterFavorite, filterPinned, useRegex, advancedSearch]);
 
   const languages = getLanguages();
+
+  const handleAddSnippet = () => {
+    if (Platform.OS !== "web") {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    router.push("/snippet/edit" as never);
+  };
 
   const renderSearchBar = () => (
     <View className="gap-3 px-4 py-3 border-b border-border">
@@ -311,6 +324,32 @@ export default function LibraryScreen() {
           }
           showsVerticalScrollIndicator={false}
         />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add a new snippet"
+          onPress={handleAddSnippet}
+          style={({ pressed }) => [
+            {
+              position: "absolute",
+              right: 18,
+              bottom: 24,
+              width: 58,
+              height: 58,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 29,
+              backgroundColor: colors.primary,
+              elevation: 6,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.28,
+              shadowRadius: 6,
+            },
+            pressed && { transform: [{ scale: 0.96 }], opacity: 0.9 },
+          ]}
+        >
+          <IconSymbol name="plus" size={30} color="#fff" />
+        </Pressable>
       </View>
     </ScreenContainer>
   );

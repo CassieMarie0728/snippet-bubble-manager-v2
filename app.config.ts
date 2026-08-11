@@ -144,6 +144,7 @@ const config: ExpoConfig = {
       manifest: "/manifest.json",
       serviceWorker: "/service-worker.js",
     },
+    apiBaseUrl: "https://snippetmgr-ev54bpnq.manus.space",
   },
 };
 

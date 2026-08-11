@@ -105,6 +105,18 @@ describe("AI quota router", () => {
     );
   });
 
+  it("normalizes multipart model output into the string response contract used by native clients", async () => {
+    llmMocks.invokeLLM.mockResolvedValueOnce({
+      choices: [{ message: { content: [{ type: "text", text: "A multipart answer." }] } }],
+    });
+    const caller = appRouter.createCaller(createContext(true));
+
+    await expect(caller.ai.generate({ messages })).resolves.toBe("A multipart answer.");
+    expect(dbMocks.recordAiRequestTelemetry).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: "succeeded", responseCharacters: "A multipart answer.".length }),
+    );
+  });
+
   it("returns compact quota status for the current requester without exposing telemetry", async () => {
     const caller = appRouter.createCaller(createContext(true));
 

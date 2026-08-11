@@ -2,6 +2,7 @@ import * as Api from "@/lib/_core/api";
 import * as Auth from "@/lib/_core/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
+import { subscribeToAuthChanges } from "@/lib/auth-events";
 
 type UseAuthOptions = {
   autoFetch?: boolean;
@@ -93,6 +94,10 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(false);
     }
   }, [autoFetch, fetchUser]);
+
+  useEffect(() => subscribeToAuthChanges(() => {
+    void fetchUser();
+  }), [fetchUser]);
 
   return {
     user,

@@ -27,7 +27,8 @@ export default function TabLayout() {
           borderTopWidth: 0.5,
         },
       }}
-    >
+      >
+      <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen
         name="library"
         options={{

@@ -15,11 +15,13 @@ import {
 import { useAIPersonality } from "@/lib/ai-personality-context";
 import { useColors } from "@/hooks/use-colors";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/lib/toast-context";
 import * as Haptics from "expo-haptics";
 
 export function AIPersonalitySettings() {
   const colors = useColors();
   const { personality, updatePersonality, resetToDefault } = useAIPersonality();
+  const { showToast } = useToast();
   const [customInstructions, setCustomInstructions] = useState(
     personality.customInstructions || ""
   );
@@ -27,6 +29,7 @@ export function AIPersonalitySettings() {
   const handleToneChange = async (tone: "formal" | "sarcastic" | "mixed") => {
     await updatePersonality({ tone });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    showToast({ title: "AI tone saved", message: "Your assistant will use this voice from now on." });
   };
 
   const handleStyleChange = async (
@@ -34,6 +37,7 @@ export function AIPersonalitySettings() {
   ) => {
     await updatePersonality({ style });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    showToast({ title: "AI style saved", message: "Future answers will use this level of detail." });
   };
 
   const handleCustomInstructionsChange = async (text: string) => {
@@ -43,6 +47,7 @@ export function AIPersonalitySettings() {
   const handleSaveCustomInstructions = async () => {
     await updatePersonality({ customInstructions });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    showToast({ title: "AI instructions saved", message: "Your custom preferences are ready for the next request." });
   };
 
   const handleReset = () => {
@@ -54,6 +59,7 @@ export function AIPersonalitySettings() {
           await resetToDefault();
           setCustomInstructions("");
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          showToast({ title: "AI settings reset", message: "The default personality is back in charge." });
         },
         style: "destructive",
       },

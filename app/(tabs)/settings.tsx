@@ -7,12 +7,12 @@ import {
   Platform,
   StyleSheet,
   Switch,
-  Share,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useSnippets } from "@/lib/snippet-context";
@@ -23,6 +23,7 @@ import { useCloudSync } from "@/lib/cloud-sync-context";
 import { startOAuthLogin } from "@/constants/oauth";
 import { parseSnippetImport, planSnippetImport, type DuplicateStrategy } from "@/lib/snippet-import";
 import { trpc } from "@/lib/trpc";
+import { useToast } from "@/lib/toast-context";
 import { useCallback, useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
   const { state, updateSettings, replaceSnippets } = useSnippets();
   const { settings, snippets } = state;
   const { themeMode, setThemeMode } = useThemeContext();
+  const { showToast } = useToast();
   const { available: cloudSyncAvailable, syncing, lastSyncedAt, conflicts, error: cloudSyncError, syncNow } = useCloudSync();
   const [showAISettings, setShowAISettings] = useState(false);
   const [showAIPrivacy, setShowAIPrivacy] = useState(false);
@@ -104,25 +106,48 @@ export default function SettingsScreen() {
 
     try {
       if (Platform.OS === "web") {
-        await Clipboard.setStringAsync(json);
-        Alert.alert("Exported", `${snippets.length} snippets copied to clipboard as JSON.`);
-      } else {
-        await Share.share({
-          message: json,
-          title: "Snippet Bubble Manager Export",
-        });
+        if (typeof document === "undefined") {
+          await Clipboard.setStringAsync(json);
+          showToast({ title: "JSON copied", message: `${snippets.length} snippets are on your clipboard.` });
+          return;
+        }
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `snippet-bubbles-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast({ title: "JSON file downloaded", message: `${snippets.length} snippets are ready to keep or share.` });
+        return;
       }
-    } catch {
-      // Fallback: copy to clipboard
+
+      const cacheDirectory = FileSystem.cacheDirectory;
+      if (!cacheDirectory) throw new Error("Temporary storage is unavailable on this device.");
+      const fileUri = `${cacheDirectory}snippet-bubbles-${Date.now()}.json`;
+      await FileSystem.writeAsStringAsync(fileUri, json, { encoding: FileSystem.EncodingType.UTF8 });
+      if (!(await Sharing.isAvailableAsync())) {
+        throw new Error("Your device cannot open the system sharing panel for this JSON file.");
+      }
+      await Sharing.shareAsync(fileUri, {
+        dialogTitle: "Export Snippet Bubbles JSON",
+        mimeType: "application/json",
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast({ title: "JSON file ready", message: `${snippets.length} snippets were exported to a .json file.` });
+    } catch (error) {
       await Clipboard.setStringAsync(json);
-      Alert.alert("Exported", `${snippets.length} snippets copied to clipboard as JSON.`);
+      const message = error instanceof Error ? error.message : "The JSON was copied to your clipboard instead.";
+      showToast({ title: "Export copied to clipboard", message, tone: "info" });
     }
-  }, [snippets]);
+  }, [showToast, snippets]);
 
   const handleImport = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/json", "text/json"],
+        type: ["application/json", "text/json", "text/plain", "application/octet-stream"],
         copyToCacheDirectory: true,
       });
       if (result.canceled || !result.assets?.[0]) return;
@@ -152,6 +177,11 @@ export default function SettingsScreen() {
           "Import Complete",
           `${plan.imported} added, ${plan.replaced} replaced, ${plan.copied} copied, ${plan.skipped} duplicate${plan.skipped === 1 ? "" : "s"} skipped.${recovery}`,
         );
+        const changed = plan.imported + plan.replaced + plan.copied;
+        showToast({
+          title: "Import complete",
+          message: `${changed} snippet${changed === 1 ? "" : "s"} added or updated.`,
+        });
       };
       Alert.alert(
         "Import Snippets",
@@ -165,8 +195,9 @@ export default function SettingsScreen() {
       );
     } catch {
       Alert.alert("Import Failed", "Could not read this JSON file. Your current library was not changed.");
+      showToast({ title: "Import failed", message: "Choose a valid Snippet Bubbles .json file and try again.", tone: "error" });
     }
-  }, [replaceSnippets, snippets]);
+  }, [replaceSnippets, showToast, snippets]);
 
   const handleCloudSync = useCallback(async () => {
     const result = await syncNow();

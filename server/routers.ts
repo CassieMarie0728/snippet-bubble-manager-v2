@@ -37,6 +37,22 @@ function getRetryMessage(quota: db.AiQuotaStatus, rejectedWindow: "hour" | "day"
   return `AI ${label} request limit reached. Try again after ${window.resetsAt.toISOString()}.`;
 }
 
+function asTextContent(content: unknown) {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) => {
+      if (!part || typeof part !== "object") return "";
+      const candidate = part as { text?: unknown; content?: unknown };
+      return typeof candidate.text === "string"
+        ? candidate.text
+        : typeof candidate.content === "string"
+          ? candidate.content
+          : "";
+    })
+    .join("");
+}
+
 async function runAi({
   procedure,
   messages,
@@ -69,7 +85,7 @@ async function runAi({
 
   try {
     const response = await invokeLLM({ messages });
-    const content = response.choices[0]?.message?.content || "";
+    const content = asTextContent(response.choices[0]?.message?.content);
     await db.recordAiRequestTelemetry({
       ...scope,
       procedure,

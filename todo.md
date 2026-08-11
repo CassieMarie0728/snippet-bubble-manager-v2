@@ -180,3 +180,11 @@
 - [ ] Run and document release-candidate checks for sync conflicts, AI quotas, import/export, and offline behavior
 - [x] Set the EAS app-version-source explicitly to remove the preview-build deprecation warning
 - [x] Remove the remaining Node module-format warning emitted during ESLint startup
+- [x] Repair the broken Index tab icon and verify bottom navigation labels and targets on Android
+- [x] Add concise success notifications for AI settings, new snippets, snippet updates, JSON imports, and exports
+- [x] Repair Android OAuth return handling so sign-in reliably enables cloud sync
+- [x] Diagnose and repair AI request execution and actionable user-facing errors
+- [x] Add a visible Library-screen ADD action matching the existing Index-page creation flow
+- [x] Ensure Android JSON export creates a shareable .json file and JSON import accepts selected snippet files
+- [x] Add regression tests for the repaired navigation, feedback, authentication, AI, and JSON file flows
+- [ ] Produce a repaired Android preview APK for physical-device retesting

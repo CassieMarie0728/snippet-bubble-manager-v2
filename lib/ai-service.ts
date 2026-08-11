@@ -5,6 +5,7 @@
  */
 
 import type { Snippet } from "@/lib/types";
+import { createTRPCClient } from "@/lib/trpc";
 
 export interface AIPersonality {
   tone: "formal" | "sarcastic" | "mixed"; // mixed = default combo
@@ -104,28 +105,18 @@ async function callAIEndpoint(
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
 ): Promise<string> {
   try {
-    const response = await fetch("/api/trpc/ai." + endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        messages,
-      }),
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const serverMessage = data?.error?.json?.message || data?.error?.message;
-      if (response.status === 429) {
-        throw new Error(serverMessage || "AI quota reached. Please wait until the displayed reset time and try again.");
-      }
-      throw new Error(serverMessage || `AI API error: ${response.statusText}`);
+    const client = createTRPCClient();
+    const input = { messages };
+    switch (endpoint) {
+      case "generate":
+        return await client.ai.generate.mutate(input);
+      case "explain":
+        return await client.ai.explain.mutate(input);
+      case "convert":
+        return await client.ai.convert.mutate(input);
+      case "generateRelated":
+        return await client.ai.generateRelated.mutate(input);
     }
-
-    // tRPC returns { result: { data: ... } }
-    return data.result?.data || "";
   } catch (error) {
     console.error(`Error calling AI endpoint ${endpoint}:`, error);
     throw error;
