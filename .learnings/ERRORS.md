@@ -947,3 +947,58 @@ ERR_PNPM_ADDING_TO_ROOT
 - Tags: pnpm, workspace, dependency-audit
 
 ---
+
+## [ERR-20260811-EAS-EXPO-CONFIG-COMMONJS] android-release
+
+**Logged**: 2026-08-11T21:49:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: Android release configuration
+
+### Summary
+The authenticated EAS credential manager could not read the Expo app configuration after the SDK dependency alignment, blocking Android credential rotation.
+
+### Error
+```
+Cannot read properties of undefined (reading 'CommonJS')
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T22:00:00Z
+- **Notes**: Local Expo configuration evaluation succeeded. EAS could not resolve the project because `app.config.ts` did not persist the account owner and EAS project ID. Adding `owner: "c728"` and `extra.eas.projectId` resolved `eas project:info`, after which EAS credential rotation and preview-build upload completed successfully.
+
+### Suggested Fix
+Persist the EAS account owner and project ID in the Expo configuration after initial project linking, then verify with `eas project:info` before invoking the interactive credential manager.
+
+### Metadata
+- Reproducible: yes
+- Related Files: app.config.ts, scripts/load-env.js, package.json
+- Tags: eas, expo, android, configuration
+
+---
+
+## [ERR-20260811-EXPO-CONFIG-GREP] release-validation
+
+**Logged**: 2026-08-11T22:03:00Z
+**Priority**: low
+**Status**: resolved
+**Area**: tooling
+
+### Summary
+The combined release preflight returned a non-zero status only because a final line-anchored grep did not match Expo's ANSI-colored, indented configuration inspector output.
+
+### Error
+```
+pnpm check, pnpm test, and pnpm lint passed; the final grep assertion returned exit code 1.
+```
+
+### Resolution
+- **Resolved**: 2026-08-11T22:03:00Z
+- **Notes**: The public Expo configuration had already been generated successfully. Use `npx expo config --type public --json` for machine-readable assertions instead of grepping the colorized inspector output.
+
+### Metadata
+- Reproducible: yes
+- Related Files: app.config.ts
+- Tags: expo, configuration, validation, grep
+
+---

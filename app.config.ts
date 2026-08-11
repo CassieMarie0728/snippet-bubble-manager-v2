@@ -41,6 +41,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
+  owner: "c728",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
@@ -135,6 +136,9 @@ const config: ExpoConfig = {
     reactCompiler: true,
   },
   extra: {
+    eas: {
+      projectId: "e7db80b7-c252-4dda-8ac6-45d21dc60cb4",
+    },
     pwa: {
       enabled: true,
       manifest: "/manifest.json",

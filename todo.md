@@ -130,7 +130,7 @@
 
 ## Priority Execution: Honest Cloud Foundation
 
-- [ ] Reconcile local repository state with GitHub and verify the live GitHub Pages source
+- [x] Reconcile local repository state with GitHub and verify the live GitHub Pages source
 - [x] Decide and document the production database dialect and migration strategy
 - [x] Replace unsupported cloud-sync claims with verified product status and explicit conflict-review behavior
 - [x] Create authenticated server-side snippet, category, collection, version, and share data models
@@ -160,17 +160,21 @@
 - [x] Add privacy-safe AI request telemetry without storing prompt or snippet content
 - [x] Add in-app and landing-page disclosure explaining AI data use and limits
 - [x] Add AI quota status and clear retry guidance to the client
-- [ ] Reconcile the verified landing-page source with the configured GitHub Pages branch
+- [x] Reconcile the verified landing-page source with the configured GitHub Pages branch
 - [x] Replace or remove every placeholder landing-page link and verify each public destination
 - [x] Add a conflict-resolution screen that lets users compare and explicitly choose local or cloud edits
-- [ ] Rotate any previously exposed Android signing credential outside the repository before a release build
+- [x] Rotate any previously exposed Android signing credential outside the repository before a release build
 - [x] Remove the tracked Android signing artifact and enforce a keystore ignore rule
 - [x] Audit remaining deployment configuration and distinguish code fixes from owner-authorized release actions
-- [ ] Restore GitHub connector authorization, switch Pages to the deployment workflow source, and verify the public Pages URLs return 200
-- [ ] Verify the post-switch GitHub Pages deployment, including landing, privacy, terms, and license paths
+- [x] Verify the GitHub Pages deployment workflow source and public Pages URLs return 200
+- [x] Verify the post-switch GitHub Pages deployment, including landing, privacy, terms, and license paths
 - [x] Add a root-level Pages compatibility entry for legacy branch publishing
-- [ ] Publish the root compatibility entry and reverify the GitHub Pages root and legal routes
+- [x] Publish the root compatibility entry and reverify the GitHub Pages root and legal routes
 - [x] Remediate critical production dependency-audit findings with verified patched transitive versions
 - [x] Align the tRPC client packages with the server version to remove peer-dependency drift
 - [x] Align Expo SDK packages with the installed SDK’s compatible patch releases and revalidate the app
 - [x] Remove remaining lint warnings while preserving hook behavior and user-visible functionality
+- [x] Publish the current GitHub Pages compatibility fix and verify public root plus legal routes
+- [x] Rotate Android signing credentials through the authorized EAS account before creating a preview build
+- [ ] Create and verify an EAS preview APK for physical-device testing
+- [ ] Run and document release-candidate checks for sync conflicts, AI quotas, import/export, and offline behavior
