@@ -3,6 +3,7 @@ import type { Express, Request, Response } from "express";
 import { getUserByOpenId, upsertUser } from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { ENV } from "./env";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -62,6 +63,27 @@ function buildUserResponse(
 }
 
 export function registerOAuthRoutes(app: Express) {
+  app.get("/api/oauth/login-url", (req: Request, res: Response) => {
+    const redirectUri = getQueryParam(req, "redirectUri");
+    const allowedNativeRedirect = redirectUri?.match(/^manus[a-zA-Z0-9]+:\/\/oauth\/callback$/);
+    const allowedWebRedirect = redirectUri?.startsWith(`${req.protocol}://${req.get("host")}/`);
+
+    if (!redirectUri || (!allowedNativeRedirect && !allowedWebRedirect)) {
+      res.status(400).json({ error: "A valid app redirect URI is required" });
+      return;
+    }
+
+    const portalBaseUrl = process.env.OAUTH_PORTAL_URL || "https://manus.im";
+    const appAuthUrl = new URL("/app-auth", portalBaseUrl);
+    const state = Buffer.from(redirectUri, "utf8").toString("base64");
+    appAuthUrl.searchParams.set("appId", ENV.appId);
+    appAuthUrl.searchParams.set("redirectUri", redirectUri);
+    appAuthUrl.searchParams.set("state", state);
+    appAuthUrl.searchParams.set("type", "signIn");
+
+    res.json({ url: appAuthUrl.toString() });
+  });
+
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");

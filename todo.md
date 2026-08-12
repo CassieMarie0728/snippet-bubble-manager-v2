@@ -187,4 +187,11 @@
 - [x] Add a visible Library-screen ADD action matching the existing Index-page creation flow
 - [x] Ensure Android JSON export creates a shareable .json file and JSON import accepts selected snippet files
 - [x] Add regression tests for the repaired navigation, feedback, authentication, AI, and JSON file flows
-- [ ] Produce a repaired Android preview APK for physical-device retesting
+- [x] Produce a repaired Android preview APK for physical-device retesting
+
+- [x] Repair Android sign-in when secure auth session launch fails, with a browser fallback and actionable error state
+- [x] Allow AI generation without a preset language and add a Custom language input
+- [x] Implement a native Android floating snippet bubble that can be dragged, collapsed, expanded, and positioned above other apps
+- [x] Add Android overlay permission guidance and verify the floating bubble lifecycle
+- [x] Add regression coverage for custom AI language payloads and OAuth fallback behavior
+- [ ] Build a replacement Android preview APK with the floating bubble changes for physical-device testing

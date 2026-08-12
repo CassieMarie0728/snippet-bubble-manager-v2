@@ -1,0 +1,10 @@
+{
+  "name": "@snippet-bubbles/floating-bubble",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/FloatingBubble.ts",
+  "types": "src/FloatingBubble.ts",
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

@@ -26,6 +26,12 @@ import { trpc } from "@/lib/trpc";
 import { useToast } from "@/lib/toast-context";
 import { useCallback, useState } from "react";
 import { useRouter } from "expo-router";
+import {
+  canDrawOverlays,
+  isFloatingBubbleSupported,
+  requestOverlayPermission,
+  stopFloatingBubble,
+} from "@/modules/floating-bubble/src/FloatingBubble";
 
 export default function SettingsScreen() {
   const colors = useColors();
@@ -64,6 +70,36 @@ export default function SettingsScreen() {
       }
     },
     [updateSettings, settings.hapticFeedback]
+  );
+
+  const handleBubbleEnabled = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        updateSettings({ bubbleEnabled: false });
+        await stopFloatingBubble();
+        showToast({ title: "Floating bubble off", message: "The overlay is no longer shown above other apps." });
+        return;
+      }
+
+      if (Platform.OS !== "android" || !isFloatingBubbleSupported()) {
+        Alert.alert("Android overlay required", "The floating bubble is available in the Android preview/release build, not Expo Go or web.");
+        return;
+      }
+
+      let allowed = await canDrawOverlays();
+      if (!allowed) {
+        await requestOverlayPermission();
+        Alert.alert("Permission needed", "Enable Display over other apps for Snippet Bubbles, then return here and enable the bubble again.");
+        return;
+      }
+
+      updateSettings({ bubbleEnabled: true });
+      if (settings.hapticFeedback) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      showToast({ title: "Floating bubble enabled", message: "Drag the bubble anywhere. Tap it to expand the snippet panel." });
+    },
+    [settings.hapticFeedback, showToast, updateSettings],
   );
 
   const handleBubbleSize = useCallback(
@@ -233,7 +269,20 @@ export default function SettingsScreen() {
 
         {/* Overlay Section */}
         <Text style={[styles.sectionTitle, { color: colors.muted }]}>OVERLAY</Text>
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, { color: colors.foreground }]}>Floating Bubble</Text>
+              <Text style={[styles.rowValue, { color: colors.muted }]}>Android overlay above other apps</Text>
+            </View>
+            <Switch
+              value={settings.bubbleEnabled}
+              onValueChange={handleBubbleEnabled}
+              trackColor={{ false: colors.border, true: colors.primary + "88" }}
+              thumbColor={settings.bubbleEnabled ? colors.primary : colors.muted}
+            />
+          </View>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.row}>
             <Text style={[styles.rowLabel, { color: colors.foreground }]}>Bubble Size</Text>
             <View style={styles.segmentControl}>

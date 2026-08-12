@@ -38,7 +38,7 @@ const env = {
   androidPackage: bundleId,
 };
 
-const config: ExpoConfig = {
+const config: ExpoConfig & { autolinking?: { nativeModulesDir: string } } = {
   name: env.appName,
   slug: env.appSlug,
   owner: "c728",
@@ -65,7 +65,12 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    permissions: ["POST_NOTIFICATIONS"],
+    permissions: [
+      "POST_NOTIFICATIONS",
+      "SYSTEM_ALERT_WINDOW",
+      "FOREGROUND_SERVICE",
+      "FOREGROUND_SERVICE_SPECIAL_USE",
+    ],
     intentFilters: [
       {
         action: "VIEW",
@@ -134,6 +139,9 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  autolinking: {
+    nativeModulesDir: "./modules",
   },
   extra: {
     eas: {

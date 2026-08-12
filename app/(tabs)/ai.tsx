@@ -23,6 +23,7 @@ import * as Haptics from "expo-haptics";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/lib/toast-context";
+import { LANGUAGES } from "@/lib/types";
 
 const GENERATION_HISTORY_KEY = "ai_generation_history";
 
@@ -39,7 +40,8 @@ export default function AIScreen() {
   const { showToast } = useToast();
 
   const [prompt, setPrompt] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("JavaScript");
+  const [selectedLanguage, setSelectedLanguage] = useState("Auto-detect");
+  const [customLanguage, setCustomLanguage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSnippet, setGeneratedSnippet] = useState<GenerateSnippetResponse | null>(null);
   const [history, setHistory] = useState<GenerationHistoryItem[]>([]);
@@ -81,9 +83,15 @@ export default function AIScreen() {
       setIsGenerating(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
+      const language =
+        selectedLanguage === "Custom..."
+          ? customLanguage.trim()
+          : selectedLanguage === "Auto-detect"
+            ? ""
+            : selectedLanguage;
       const result = await generateSnippet({
         prompt: prompt.trim(),
-        language: selectedLanguage,
+        language: language || undefined,
         personality,
       });
 
@@ -154,18 +162,7 @@ export default function AIScreen() {
     ]);
   };
 
-  const languages = [
-    "JavaScript",
-    "TypeScript",
-    "Python",
-    "React",
-    "Vue",
-    "Rust",
-    "Go",
-    "Java",
-    "C++",
-    "SQL",
-  ];
+  const languages = ["Auto-detect", ...LANGUAGES, "Custom..."];
 
   return (
     <ScreenContainer className="bg-background">
@@ -237,6 +234,21 @@ export default function AIScreen() {
               </Pressable>
             ))}
           </ScrollView>
+          {selectedLanguage === "Custom..." && (
+            <TextInput
+              value={customLanguage}
+              onChangeText={setCustomLanguage}
+              placeholder="e.g., Elixir, Solidity, HCL, or your own format"
+              placeholderTextColor={colors.muted}
+              className="bg-surface border border-border rounded-lg p-3 text-foreground"
+              style={{ color: colors.foreground }}
+              editable={!isGenerating}
+              autoCapitalize="words"
+            />
+          )}
+          <Text className="text-xs text-muted">
+            Auto-detect lets the model choose. Custom accepts any language or format name.
+          </Text>
         </View>
 
         {/* Generate Button */}

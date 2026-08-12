@@ -83,6 +83,7 @@ export interface AutoTagResult {
 }
 
 export interface AppSettings {
+  bubbleEnabled: boolean;
   bubbleSize: "small" | "medium" | "large";
   bubbleOpacity: number;
   snapToEdge: boolean;
@@ -91,6 +92,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  bubbleEnabled: false,
   bubbleSize: "medium",
   bubbleOpacity: 0.8,
   snapToEdge: true,

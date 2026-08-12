@@ -13,6 +13,7 @@ import { CategoryCollectionProvider } from "@/lib/category-collection-context";
 import { AIPersonalityProvider } from "@/lib/ai-personality-context";
 import { CloudSyncProvider } from "@/lib/cloud-sync-context";
 import { ToastProvider } from "@/lib/toast-context";
+import { FloatingBubbleController } from "@/components/floating-bubble-controller";
 import {
   SafeAreaFrameContext,
   SafeAreaInsetsContext,
@@ -92,6 +93,7 @@ export default function RootLayout() {
               <QueryClientProvider client={queryClient}>
                 <CloudSyncProvider>
                   <ToastProvider>
+                    <FloatingBubbleController />
                     <Stack screenOptions={{ headerShown: false }}>
                       <Stack.Screen name="(tabs)" />
                       <Stack.Screen name="oauth/callback" />

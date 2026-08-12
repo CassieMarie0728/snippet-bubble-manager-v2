@@ -23,6 +23,9 @@ importers:
       '@react-navigation/native':
         specifier: ^7.1.8
         version: 7.1.25(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      '@snippet-bubbles/floating-bubble':
+        specifier: link:modules/floating-bubble
+        version: link:modules/floating-bubble
       '@tanstack/react-query':
         specifier: ^5.90.12
         version: 5.90.12(react@19.1.0)

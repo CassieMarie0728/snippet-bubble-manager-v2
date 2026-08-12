@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import * as ReactNative from "react-native";
 import Constants from "expo-constants";
+import * as WebBrowser from "expo-web-browser";
 
 // Extract scheme from bundle ID (last segment timestamp, prefixed with "manus")
 // e.g., "space.manus.my.app.t20240115103045" -> "manus20240115103045"
@@ -85,15 +86,35 @@ export const getRedirectUri = () => {
 export const getLoginUrl = () => {
   const redirectUri = getRedirectUri();
   const state = encodeState(redirectUri);
+  const portal = OAUTH_PORTAL_URL || "https://manus.im";
 
-  const url = new URL(`${OAUTH_PORTAL_URL}/app-auth`);
-  url.searchParams.set("appId", APP_ID);
+  const url = new URL("/app-auth", portal);
+  if (APP_ID) url.searchParams.set("appId", APP_ID);
   url.searchParams.set("redirectUri", redirectUri);
   url.searchParams.set("state", state);
   url.searchParams.set("type", "signIn");
 
   return url.toString();
 };
+
+export async function getServerLoginUrl(): Promise<string> {
+  const redirectUri = getRedirectUri();
+  const baseUrl = getApiBaseUrl();
+  if (!baseUrl) {
+    return getLoginUrl();
+  }
+
+  const url = `${baseUrl}/api/oauth/login-url?${new URLSearchParams({ redirectUri }).toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Sign-in service unavailable (${response.status}).`);
+  }
+  const payload = (await response.json()) as { url?: string };
+  if (!payload.url) {
+    throw new Error("Sign-in service returned no login URL.");
+  }
+  return payload.url;
+}
 
 /**
  * Start OAuth login flow.
@@ -106,30 +127,27 @@ export const getLoginUrl = () => {
  * @returns Always null, the callback is handled via deep link.
  */
 export async function startOAuthLogin(): Promise<string | null> {
-  const loginUrl = getLoginUrl();
+  const loginUrl = await getServerLoginUrl();
 
   if (ReactNative.Platform.OS === "web") {
-    // On web, just redirect
-    if (typeof window !== "undefined") {
-      window.location.href = loginUrl;
-    }
-    return null;
-  }
-
-  const supported = await Linking.canOpenURL(loginUrl);
-  if (!supported) {
-    console.warn("[OAuth] Cannot open login URL: URL scheme not supported");
-    // 可考虑抛出错误或返回错误状态，让调用方处理
+    if (typeof window !== "undefined") window.location.href = loginUrl;
     return null;
   }
 
   try {
-    await Linking.openURL(loginUrl);
-  } catch (error) {
-    console.error("[OAuth] Failed to open login URL:", error);
-    // 可考虑抛出错误让调用方处理
+    const authSession = await WebBrowser.openAuthSessionAsync(loginUrl, getRedirectUri());
+    if (authSession.type === "success" && authSession.url) {
+      await Linking.openURL(authSession.url);
+    }
+    return authSession.type;
+  } catch (sessionError) {
+    console.warn("[OAuth] Auth session launch failed; falling back to system browser", sessionError);
+    try {
+      await Linking.openURL(loginUrl);
+      return "opened";
+    } catch (browserError) {
+      console.error("[OAuth] System browser fallback failed", browserError);
+      throw new Error("Could not open the secure sign-in flow. Check your internet connection and try again.");
+    }
   }
-
-  // The OAuth callback will reopen the app via deep link.
-  return null;
 }

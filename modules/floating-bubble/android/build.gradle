@@ -1,0 +1,19 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.snippetbubbles'
+version = '1.0.0'
+
+android {
+  namespace "com.snippetbubbles.floatingbubble"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  api "androidx.annotation:annotation:1.0.0"
+}

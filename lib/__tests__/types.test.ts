@@ -4,6 +4,7 @@ import type { Snippet, SnippetInput, AppSettings, FilterType } from "../types";
 
 describe("Types and Constants", () => {
   it("DEFAULT_SETTINGS has correct default values", () => {
+    expect(DEFAULT_SETTINGS.bubbleEnabled).toBe(false);
     expect(DEFAULT_SETTINGS.bubbleSize).toBe("medium");
     expect(DEFAULT_SETTINGS.bubbleOpacity).toBe(0.8);
     expect(DEFAULT_SETTINGS.snapToEdge).toBe(true);
@@ -71,6 +72,7 @@ describe("Types and Constants", () => {
 
   it("AppSettings shape is valid", () => {
     const settings: AppSettings = {
+      bubbleEnabled: true,
       bubbleSize: "large",
       bubbleOpacity: 0.5,
       snapToEdge: false,
@@ -78,6 +80,7 @@ describe("Types and Constants", () => {
       hapticFeedback: false,
     };
 
+    expect(settings.bubbleEnabled).toBe(true);
     expect(settings.bubbleSize).toBe("large");
     expect(settings.bubbleOpacity).toBe(0.5);
     expect(settings.snapToEdge).toBe(false);

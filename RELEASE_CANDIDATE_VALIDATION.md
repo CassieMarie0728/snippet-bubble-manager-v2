@@ -11,10 +11,13 @@
 | Preview artifact request | Android internal-distribution preview build `f9c2c88e-f9ad-4ce1-9d8e-d3fe3fa859e5` was uploaded to EAS on 2026-08-11. | Submitted |
 | Current remote state | The EAS build finished successfully on 2026-08-11. | Passed |
 | Preview APK | [Download the internal-test APK](https://expo.dev/artifacts/eas/nrKXsP-Y2rjW6s39RbI_ud2T72kQ0wVmTXdiCFoKZbE.apk) | Available through 2026-08-25 |
+| Replacement preview build | Build `90f9becd-f1fd-44ae-9c3c-3a83374de891` finished successfully with the Android remediation included. | Ready for device retest |
 
 The first device test correctly caught a broken auto-registered Index tab, missing native API routing for sign-in and AI calls, and clipboard-only Android export behavior. Those defects are remediated in the next preview candidate; this initial artifact must not be used as release evidence.
 
 Build dashboard: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/f9c2c88e-f9ad-4ce1-9d8e-d3fe3fa859e5>
+
+Replacement build dashboard and installation QR code: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/90f9becd-f1fd-44ae-9c3c-3a83374de891>
 
 ## Local Release Preflight
 
@@ -67,3 +70,14 @@ The automated evidence is complete. The following acceptance checks require a re
 - This preview build is **internal distribution only** and is not a Play Store submission.
 - A production Android App Bundle requires a separate, user-authorized release-build request after preview-device validation passes.
 - Play Store release builds should retain EAS-managed signing and enable the release hardening described in `ANDROID_RELEASE.md`.
+
+## Android Remediation Tranche 2
+
+| Concern | Corrective action | Current evidence |
+|---|---|---|
+| Secure auth session launch failure | Native sign-in now requests a server-generated login URL and falls back to the system browser when `openAuthSessionAsync` cannot launch. | Focused regression passed |
+| Preset-only AI language selection | AI generation now supports Auto-detect and an arbitrary Custom language value without forcing a catalog selection. | Focused regression passed |
+| System-wide snippet access | Added an opt-in native Android overlay module with a draggable bubble, expanded snippet panel, minimize/close controls, and a route back to the full editor. | Expo autolinking resolved; remote native compile pending |
+| Overlay safety | Settings now explains the Android Display over other apps permission and keeps the feature disabled by default. | TypeScript and UI wiring passed |
+
+The focused tranche suite completed with **9 passing tests across 3 files**, including the standalone-browser OAuth fallback and omitted/custom AI-language request paths. The replacement EAS build must still prove the Kotlin service, manifest merge, and overlay lifecycle on a physical Android device.
