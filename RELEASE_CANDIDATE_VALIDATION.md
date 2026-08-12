@@ -81,3 +81,7 @@ The automated evidence is complete. The following acceptance checks require a re
 | Overlay safety | Settings now explains the Android Display over other apps permission and keeps the feature disabled by default. | TypeScript and UI wiring passed |
 
 The focused tranche suite completed with **9 passing tests across 3 files**, including the standalone-browser OAuth fallback and omitted/custom AI-language request paths. The replacement EAS build must still prove the Kotlin service, manifest merge, and overlay lifecycle on a physical Android device.
+
+## Current Replacement APK Submission
+
+The user-authorized overlay/login preview request was submitted to EAS as build `e654c031-3ce0-425b-a6b9-8fc446a02b64` on 2026-08-12. It uses checkpoint fingerprint `0ce1cfb0`, the `preview` profile, internal Android distribution, and the EAS-managed **Snippet Bubbles Preview** keystore. The latest remote status is `IN_QUEUE`; no artifact or build logs are available yet. Build dashboard: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/e654c031-3ce0-425b-a6b9-8fc446a02b64>.

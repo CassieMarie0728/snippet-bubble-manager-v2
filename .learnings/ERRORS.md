@@ -1034,3 +1034,39 @@ Hide the legacy Index route from the visible tab bar, use a shared native-safe n
 - Tags: android, oauth, cloud-sync, ai, navigation, preview
 
 ---
+
+## [ERR-20260812-OVL] eas-native-floating-bubble-kotlin
+
+**Logged**: 2026-08-12T16:02:00Z
+**Priority**: high
+**Status**: resolved
+**Area**: infra
+
+### Summary
+The first EAS build containing the native floating-bubble module failed during Kotlin compilation because the module used generic `AsyncFunction<Boolean>` declarations that are not part of the SDK 54 Expo Modules API.
+
+### Error
+```text
+FloatingBubbleModule.kt:51:18 No type arguments expected for fun AsyncFunction(name: String, crossinline body: () -> Any?): AsyncFunctionComponent.
+FloatingBubbleModule.kt:51:37 Argument type mismatch: actual type is Function1<Map<String, Any?>, Any?>, but Function0<Any?> was expected.
+Execution failed for task ':snippet-bubbles-floating-bubble:compileReleaseKotlin'.
+```
+
+### Context
+- EAS build: `e654c031-3ce0-425b-a6b9-8fc446a02b64`
+- The remote Gradle compiler discovered and attempted to compile the local module.
+- The failure was isolated to `modules/floating-bubble/android/src/main/java/com/snippetbubbles/floatingbubble/FloatingBubbleModule.kt`.
+
+### Suggested Fix
+Use SDK 54’s non-generic `AsyncFunction("name") { ... }` declarations while retaining typed lambda parameters for functions that receive options.
+
+### Metadata
+- Reproducible: yes
+- Related Files: modules/floating-bubble/android/src/main/java/com/snippetbubbles/floatingbubble/FloatingBubbleModule.kt
+- Tags: eas, android, expo-modules, kotlin, floating-overlay
+
+### Resolution
+- **Resolved**: 2026-08-12T16:02:00Z
+- **Notes**: Removed the unsupported `AsyncFunction<Boolean>` type arguments from the overlay module. A replacement EAS build is required to prove the corrected Kotlin compiles remotely.
+
+---

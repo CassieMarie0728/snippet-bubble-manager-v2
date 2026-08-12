@@ -195,3 +195,6 @@
 - [x] Add Android overlay permission guidance and verify the floating bubble lifecycle
 - [x] Add regression coverage for custom AI language payloads and OAuth fallback behavior
 - [ ] Build a replacement Android preview APK with the floating bubble changes for physical-device testing
+
+- [ ] Submit a new EAS Android preview APK containing the checkpointed overlay and login fixes for physical-device testing
+- [x] Adapt the native floating-bubble module to the SDK 54 Expo AsyncFunction API after remote Kotlin compiler feedback

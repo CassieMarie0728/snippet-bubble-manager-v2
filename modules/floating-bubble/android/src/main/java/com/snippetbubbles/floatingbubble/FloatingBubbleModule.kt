@@ -29,11 +29,11 @@ class FloatingBubbleModule : Module() {
       Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
     }
 
-    AsyncFunction<Boolean>("canDrawOverlays") {
+    AsyncFunction("canDrawOverlays") {
       Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(requireContext())
     }
 
-    AsyncFunction<Boolean>("requestOverlayPermission") {
+    AsyncFunction("requestOverlayPermission") {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
         true
       } else if (Settings.canDrawOverlays(requireContext())) {
@@ -48,7 +48,7 @@ class FloatingBubbleModule : Module() {
       }
     }
 
-    AsyncFunction<Boolean>("start") { options: Map<String, Any?> ->
+    AsyncFunction("start") { options: Map<String, Any?> ->
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(requireContext())) {
         false
       } else {
