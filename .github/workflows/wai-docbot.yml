@@ -1,0 +1,334 @@
+# Woden DocBot Configuration — Snippet Bubble Manager V2
+
+Repository: <https://github.com/CassieMarie0728/snippet-bubble-manager-v2>
+
+Save the configuration below as `.github/wai-docbot.yml` in the repository.
+
+```yaml
+# WODEN DOCBOT CONFIGURATION — SNIPPET BUBBLE MANAGER V2
+# File location: .github/wai-docbot.yml
+
+# Generate one README for each changed directory.
+output_mode: "directory"
+
+# Exact-path overrides based on the repository's actual structure.
+directory_overrides:
+  - path: "app"
+    diagram_type: "module_relationship"
+  - path: "app/(tabs)"
+    diagram_type: "component_dependency"
+  - path: "app/snippet"
+    diagram_type: "state_machine"
+  - path: "app/oauth"
+    diagram_type: "sequence"
+  - path: "app/dev"
+    skip_readme: true
+  - path: "components"
+    diagram_type: "component_dependency"
+  - path: "components/ui"
+    diagram_type: "component_dependency"
+  - path: "lib"
+    diagram_type: "component_dependency"
+  - path: "lib/_core"
+    diagram_type: "module_relationship"
+  - path: "lib/__tests__"
+    skip_readme: true
+  - path: "hooks"
+    diagram_type: "module_relationship"
+  - path: "constants"
+    diagram_type: "module_relationship"
+  - path: "constants/__tests__"
+    skip_readme: true
+  - path: "server"
+    diagram_type: "component_dependency"
+  - path: "server/_core"
+    diagram_type: "module_relationship"
+  - path: "shared"
+    diagram_type: "module_relationship"
+  - path: "drizzle"
+    diagram_type: "data_model"
+  - path: "drizzle/meta"
+    skip_readme: true
+  - path: "modules/floating-bubble"
+    diagram_type: "component_dependency"
+  - path: "modules/floating-bubble/src"
+    diagram_type: "module_relationship"
+  - path: "modules/floating-bubble/android"
+    diagram_type: "component_dependency"
+  - path: "modules/floating-bubble/android/src/main/java/com/snippetbubbles/floatingbubble"
+    diagram_type: "class_hierarchy"
+  - path: "scripts"
+    diagram_type: "sequence"
+  - path: "public"
+    diagram_type: "component_dependency"
+  - path: "landing-page"
+    diagram_type: "module_relationship"
+  - path: "tests"
+    skip_readme: true
+  - path: "assets"
+    skip_readme: true
+  - path: "assets/images"
+    skip_readme: true
+  - path: "images"
+    skip_readme: true
+
+# Keep generated documentation separate from hand-authored docs/ content.
+docs_folder: "_docs"
+
+allowed_base_branches:
+  - "main"
+  - "develop"
+  - "release/*"
+  - "hotfix/*"
+  - "release-candidate/*"
+  - "wai-docs-update"
+
+preferences:
+  include_code_links: true
+  include_examples: true
+  require_pr_approval: true
+  document_root_files: true
+
+guide_projects:
+  - name: "snippet-bubble-manager-v2-architecture"
+    path: "."
+    purpose: >-
+      Document the complete architecture and runtime behavior of Snippet Bubble
+      Manager V2, including Expo Router navigation, tab and nested route structure,
+      React Native and web rendering, client-side contexts and state management,
+      AsyncStorage persistence, snippet creation and editing, categories,
+      collections, favorites, pinned snippets, templates, advanced search, syntax
+      highlighting, importing, sharing, version history, AI-assisted generation,
+      explanation and language conversion, AI personality settings, backend LLM
+      invocation, usage quotas, OAuth authentication, tRPC and React Query
+      communication, Express server initialization, Drizzle ORM and MySQL entity
+      relationships, offline-first cloud synchronization, operation queues,
+      revisions, soft deletion, optimistic-concurrency conflicts, public share
+      tokens, Expo deep links, PWA registration and service-worker behavior,
+      NativeWind theming, Android overlay permissions, the custom Expo native
+      module, Kotlin foreground-service lifecycle, floating snippet-bubble
+      interactions, notification requirements, EAS builds, GitHub Pages landing
+      deployment, security boundaries, testing, configuration, failure modes,
+      and production deployment workflows.
+    patterns: []
+
+include_extensions:
+  # TypeScript and React
+  - ".ts"
+  - ".tsx"
+  - ".mts"
+  - ".cts"
+  # JavaScript and tooling
+  - ".js"
+  - ".jsx"
+  - ".mjs"
+  - ".cjs"
+  # Native Android module
+  - ".kt"
+  - ".java"
+  - ".gradle"
+  - ".xml"
+  - ".properties"
+  - ".pro"
+  # Web and PWA
+  - ".html"
+  - ".css"
+  # Database
+  - ".sql"
+  # Configuration and metadata
+  - ".json"
+  - ".jsonc"
+  - ".yaml"
+  - ".yml"
+  # Automation
+  - ".sh"
+  - ".bash"
+  - ".zsh"
+  - ".ps1"
+  - ".bat"
+
+exclude:
+  # Generated and existing documentation
+  - "_docs/**"
+  - "**/_docs/**"
+  - "docs/**"
+  - "**/docs/**"
+  - "**/*.md"
+  - "**/*.mdx"
+  - "**/README"
+  - "**/README.*"
+  - "**/CHANGELOG"
+  - "**/CHANGELOG.*"
+  - "**/LICENSE"
+  - "**/LICENSE.*"
+  - ".learnings/**"
+  - ".codedocs"
+
+  # Dependencies and lockfiles
+  - "node_modules/**"
+  - "**/node_modules/**"
+  - "vendor/**"
+  - "**/vendor/**"
+  - "package-lock.json"
+  - "**/package-lock.json"
+  - "yarn.lock"
+  - "**/yarn.lock"
+  - "pnpm-lock.yaml"
+  - "**/pnpm-lock.yaml"
+  - "bun.lock"
+  - "**/bun.lock"
+  - "bun.lockb"
+  - "**/bun.lockb"
+
+  # Expo, Metro, web, and server build output
+  - "dist/**"
+  - "**/dist/**"
+  - "build/**"
+  - "**/build/**"
+  - "out/**"
+  - "**/out/**"
+  - "coverage/**"
+  - "**/coverage/**"
+  - ".expo/**"
+  - "**/.expo/**"
+  - "web-build/**"
+  - "**/web-build/**"
+  - ".metro-cache/**"
+  - "**/.metro-cache/**"
+  - ".cache/**"
+  - "**/.cache/**"
+  - ".vite/**"
+  - "**/.vite/**"
+  - ".turbo/**"
+  - "**/.turbo/**"
+  - "**/*.min.js"
+  - "**/*.min.css"
+  - "**/*.bundle.js"
+  - "**/*.bundle.css"
+  - "**/*.chunk.js"
+  - "**/*.map"
+
+  # Generated Drizzle snapshots and journals
+  - "drizzle/meta/**"
+  - "**/drizzle/meta/**"
+
+  # Native Android generated output
+  - "**/.gradle/**"
+  - "**/android/build/**"
+  - "**/android/app/build/**"
+  - "**/android/.idea/**"
+  - "**/android/captures/**"
+  - "**/*.apk"
+  - "**/*.aab"
+  - "**/*.aar"
+  - "**/*.class"
+  - "**/*.dex"
+  - "**/gradle-wrapper.jar"
+
+  # Images, media, and fonts
+  - "assets/**"
+  - "images/**"
+  - "**/*.png"
+  - "**/*.jpg"
+  - "**/*.jpeg"
+  - "**/*.gif"
+  - "**/*.webp"
+  - "**/*.svg"
+  - "**/*.ico"
+  - "**/*.webm"
+  - "**/*.mp4"
+  - "**/*.mov"
+  - "**/*.wav"
+  - "**/*.mp3"
+  - "**/*.ttf"
+  - "**/*.otf"
+
+  # Version control and GitHub metadata
+  - ".git/**"
+  - ".gitignore"
+  - "**/.gitignore"
+  - ".gitattributes"
+  - "**/.gitattributes"
+  - ".gitkeep"
+  - "**/.gitkeep"
+  - ".github/wai-docbot.yml"
+  - ".github/PULL_REQUEST_TEMPLATE/**"
+  - ".github/pull_request_template.md"
+  - ".github/CODEOWNERS"
+
+  # IDE and local development metadata
+  - ".idea/**"
+  - "**/.idea/**"
+  - ".vscode/**"
+  - "**/.vscode/**"
+  - ".vs/**"
+  - "**/.vs/**"
+  - ".history/**"
+  - "**/.history/**"
+  - ".settings/**"
+  - "**/.settings/**"
+  - ".DS_Store"
+  - "**/.DS_Store"
+  - "**/*.swp"
+  - "**/*.swo"
+  - "**/*~"
+  - ".watchmanconfig"
+
+  # Test output and snapshots
+  - "__snapshots__/**"
+  - "**/__snapshots__/**"
+  - ".nyc_output/**"
+  - "**/.nyc_output/**"
+  - "test-results/**"
+  - "**/test-results/**"
+  - "playwright-report/**"
+  - "**/playwright-report/**"
+  - "**/*.snap"
+
+  # Environment values, credentials, and signing material
+  - ".env"
+  - ".env.*"
+  - "**/.env"
+  - "**/.env.*"
+  - "**/local.settings.json"
+  - "**/credential.json"
+  - "**/credentials.json"
+  - "**/*.pem"
+  - "**/*.key"
+  - "**/*.p12"
+  - "**/*.pfx"
+  - "**/*.jks"
+  - "**/*.keystore"
+  - "**/*.crt"
+  - "**/*.cer"
+  - "secrets/**"
+  - "**/secrets/**"
+  - "**/*.secret"
+  - "**/local.properties"
+  - "**/keystore.properties"
+
+  # Temporary, backup, dump, and log files
+  - "**/*.log"
+  - "**/*.tmp"
+  - "**/*.temp"
+  - "**/*.bak"
+  - "**/*.backup"
+  - "**/*.dump"
+  - "**/*.sql.gz"
+  - "tmp/**"
+  - "**/tmp/**"
+  - "temp/**"
+  - "**/temp/**"
+```
+
+## What this configuration covers
+
+- Expo Router navigation across Android, iOS, web, and PWA targets
+- AsyncStorage-based local snippet management and offline-first behavior
+- Cloud synchronization, revision tracking, queues, soft deletion, and conflict resolution
+- Express, tRPC, React Query, Drizzle ORM, and MySQL
+- AI generation, explanation, conversion, related snippets, personality settings, and quotas
+- Categories, collections, favorites, pinned snippets, sharing, and version history
+- The Kotlin foreground service and Android floating-overlay module
+- Android permissions, notifications, deep links, EAS builds, and GitHub Pages deployment
+- Separation of hand-authored schema and migrations from generated Drizzle snapshots
