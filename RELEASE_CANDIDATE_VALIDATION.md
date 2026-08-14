@@ -85,3 +85,9 @@ The focused tranche suite completed with **9 passing tests across 3 files**, inc
 ## Current Replacement APK Submission
 
 The user-authorized overlay/login preview request was submitted to EAS as build `e654c031-3ce0-425b-a6b9-8fc446a02b64` on 2026-08-12. It uses checkpoint fingerprint `0ce1cfb0`, the `preview` profile, internal Android distribution, and the EAS-managed **Snippet Bubbles Preview** keystore. The latest remote status is `IN_QUEUE`; no artifact or build logs are available yet. Build dashboard: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/e654c031-3ce0-425b-a6b9-8fc446a02b64>.
+
+## Corrected Overlay/Login APK
+
+The replacement EAS Android preview build completed successfully after the SDK 54 Kotlin correction. Build ID: `9a14df47-dfb5-49bc-8022-1221fb450493`. Status: `FINISHED`. Git checkpoint: `482066384d2de3414455dae2778deb0e5a377aef`. Distribution: internal APK. Artifact: <https://expo.dev/artifacts/eas/4LJmpIUD90803oh_i3JaABqnCbzZbPFu7K9X9KvcVIU.apk>. Dashboard: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/9a14df47-dfb5-49bc-8022-1221fb450493>.
+
+The remote Gradle compiler successfully built the local floating-bubble module after the `AsyncFunction<Boolean>` declarations were corrected for SDK 54. Physical-device validation remains user-facing: install the APK and test overlay permission, drag/collapse/expand behavior, snippet launch, Android sign-in, custom AI language generation, and JSON sharing.
