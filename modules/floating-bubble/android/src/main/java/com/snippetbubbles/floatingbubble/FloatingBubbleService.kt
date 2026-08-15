@@ -1,5 +1,6 @@
 package com.snippetbubbles.floatingbubble
 
+import android.app.AlertDialog
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -126,8 +127,8 @@ class FloatingBubbleService : Service() {
     val root = LinearLayout(this).apply {
       orientation = LinearLayout.VERTICAL
       setPadding(dp(16), dp(12), dp(16), dp(12))
-      background = roundedBackground("#202124", dp(18).toFloat())
-      alpha = opacity.coerceIn(0.35f, 1f)
+      background = roundedBackground("#171a1d", dp(18).toFloat())
+      alpha = opacity.coerceAtLeast(0.94f).coerceAtMost(1f)
       contentDescription = "Snippet Bubbles workspace"
     }
 
@@ -229,8 +230,8 @@ class FloatingBubbleService : Service() {
     val root = LinearLayout(this).apply {
       orientation = LinearLayout.VERTICAL
       setPadding(dp(16), dp(12), dp(16), dp(12))
-      background = roundedBackground("#202124", dp(18).toFloat())
-      alpha = opacity.coerceIn(0.35f, 1f)
+      background = roundedBackground("#171a1d", dp(18).toFloat())
+      alpha = opacity.coerceAtLeast(0.94f).coerceAtMost(1f)
       contentDescription = if (existing == null) "Create overlay entry" else "Edit overlay entry"
     }
 
@@ -274,11 +275,17 @@ class FloatingBubbleService : Service() {
     }
     root.addView(codeField, LinearLayout.LayoutParams(-1, 0, 1f).apply { setMargins(0, 0, 0, dp(10)) })
 
+    if (existing != null) {
+      root.addView(makeDangerButton("Delete entry", "Delete this overlay entry") {
+        showDeleteConfirmation(existing.optString("id"))
+      }, LinearLayout.LayoutParams(-1, dp(50)).apply { setMargins(0, 0, 0, dp(8)) })
+    }
+
     val actions = LinearLayout(this).apply {
       orientation = LinearLayout.HORIZONTAL
       gravity = Gravity.CENTER_VERTICAL
     }
-    actions.addView(makeSecondaryButton("Cancel", "Discard changes") { showExpandedPanel() }, LinearLayout.LayoutParams(0, dp(52), 1f).apply { setMargins(0, 0, dp(8), 0) })
+    actions.addView(makeSecondaryButton("Cancel", "Discard changes") { showExpandedPanel() }, LinearLayout.LayoutParams(0, dp(52), 1f).apply { setMargins(0, 0, dp(12), 0) })
     actions.addView(makePrimaryButton("Save", "Save overlay entry") {
       saveEntry(editingId, titleField.text.toString(), languageField.text.toString(), codeField.text.toString())
     }, LinearLayout.LayoutParams(0, dp(52), 1f))
@@ -376,6 +383,19 @@ class FloatingBubbleService : Service() {
     }
   }
 
+  private fun makeDangerButton(label: String, description: String, action: () -> Unit): Button {
+    return Button(this).apply {
+      text = label
+      textSize = 15f
+      setTextColor(Color.WHITE)
+      isAllCaps = false
+      minHeight = dp(48)
+      background = roundedBackground("#7f1519", dp(10).toFloat())
+      contentDescription = description
+      setOnClickListener { action() }
+    }
+  }
+
   private fun makeSecondaryButton(label: String, description: String, action: () -> Unit): Button {
     return Button(this).apply {
       text = label
@@ -402,6 +422,44 @@ class FloatingBubbleService : Service() {
       setSingleLine(singleLine)
       contentDescription = hintText
     }
+  }
+
+  private fun showDeleteConfirmation(id: String) {
+    val dialog = AlertDialog.Builder(this)
+      .setTitle("Delete this entry?")
+      .setMessage("This removes the entry from the overlay and the main Snippet Bubbles library.")
+      .setNegativeButton("Cancel", null)
+      .setPositiveButton("Delete") { _, _ -> deleteEntry(id) }
+      .create()
+    dialog.window?.setType(
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+      } else {
+        WindowManager.LayoutParams.TYPE_PHONE
+      },
+    )
+    dialog.show()
+  }
+
+  private fun deleteEntry(id: String) {
+    if (id.isBlank()) return
+    val source = runCatching { JSONArray(snippetsJson) }.getOrElse { JSONArray() }
+    val next = JSONArray()
+    var removed = false
+    for (index in 0 until source.length()) {
+      val item = source.optJSONObject(index) ?: continue
+      if (item.optString("id") == id) {
+        removed = true
+      } else {
+        next.put(item)
+      }
+    }
+    if (!removed) return
+    snippetsJson = next.toString()
+    persistSnippets()
+    appendPendingDelete(id)
+    Toast.makeText(this, "Entry deleted.", Toast.LENGTH_SHORT).show()
+    showExpandedPanel()
   }
 
   private fun saveEntry(editingId: String?, rawTitle: String, rawLanguage: String, code: String) {
@@ -478,6 +536,19 @@ class FloatingBubbleService : Service() {
       if (item.optString("id") == id) return item
     }
     return null
+  }
+
+  private fun appendPendingDelete(id: String) {
+    val prefs = getPreferences()
+    val existing = runCatching { JSONArray(prefs.getString(FLOATING_BUBBLE_PENDING_CHANGES, "[]") ?: "[]") }.getOrElse { JSONArray() }
+    val next = JSONArray()
+    for (index in 0 until existing.length()) {
+      val change = existing.optJSONObject(index) ?: continue
+      val changeId = change.optString("id").ifBlank { change.optJSONObject("snippet")?.optString("id") ?: "" }
+      if (changeId != id) next.put(change)
+    }
+    next.put(JSONObject().put("type", "delete").put("id", id))
+    prefs.edit().putString(FLOATING_BUBBLE_PENDING_CHANGES, next.toString()).apply()
   }
 
   private fun appendPendingUpsert(entry: JSONObject) {

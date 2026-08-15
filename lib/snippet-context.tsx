@@ -222,12 +222,18 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const applyOverlayChanges = useCallback((changes: unknown[]) => {
-    const snippets = changes
-      .filter((change): change is { type?: string; snippet?: unknown } => Boolean(change && typeof change === "object"))
+    const validChanges = changes.filter(
+      (change): change is { type?: string; id?: unknown; snippet?: unknown } => Boolean(change && typeof change === "object"),
+    );
+    const deleteIds = validChanges
+      .filter((change) => change.type === "delete" && typeof change.id === "string" && change.id.trim())
+      .map((change) => change.id as string);
+    const snippets = validChanges
       .filter((change) => change.type === "upsert")
       .map((change) => normalizeOverlaySnippet(change.snippet, stateRef.current.snippets))
       .filter((snippet): snippet is Snippet => Boolean(snippet));
     if (snippets.length > 0) dispatch({ type: "APPLY_OVERLAY", snippets });
+    deleteIds.forEach((id) => dispatch({ type: "DELETE", id }));
   }, []);
 
   const getSnippetById = useCallback(

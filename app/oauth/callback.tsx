@@ -154,8 +154,18 @@ export default function OAuthCallback() {
           console.log("[OAuth] Session token found in URL, storing...");
           await Auth.setSessionToken(sessionToken);
           console.log("[OAuth] Session token stored successfully");
-          // User info is already in the OAuth callback response
-          // No need to fetch from API
+          const apiUser = await Api.getMe();
+          if (apiUser) {
+            await Auth.setUserInfo({
+              id: apiUser.id,
+              openId: apiUser.openId,
+              name: apiUser.name,
+              email: apiUser.email,
+              loginMethod: apiUser.loginMethod,
+              lastSignedIn: new Date(apiUser.lastSignedIn),
+            });
+            console.log("[OAuth] User info hydrated from the authenticated session");
+          }
           setStatus("success");
           console.log("[OAuth] Redirecting to home...");
           setTimeout(() => {

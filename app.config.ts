@@ -102,6 +102,12 @@ const config: ExpoConfig & { autolinking?: { nativeModulesDir: string } } = {
   plugins: [
     "expo-router",
     [
+      "expo-web-browser",
+      {
+        experimentalLauncherActivity: true,
+      },
+    ],
+    [
       "expo-audio",
       {
         microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone.",

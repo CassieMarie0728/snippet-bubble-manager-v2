@@ -235,3 +235,11 @@
 > Security constraint: do not put auth tokens, cloud credentials, or raw account secrets into the native overlay service or its persisted handoff.
 
 > Acceptance criteria: tapping a snippet stays inside the overlay; up to 100 items can be browsed; a user can create and save a memo or code snippet without entering the full app; multiline code remains intact; overlay edits appear in the main app after refresh; minimize/close still work; and the app remains TypeScript/test/lint clean.
+
+## Repair and Polish Tranche (2026-08-15)
+
+- [x] Make the Android overlay less transparent (opaque background #161a1d / #1f2428)
+- [x] Add a confirmation delete button inside the overlay editor
+- [x] Increase spacing between card action buttons in the main app (Library/Favorites card footer)
+- [x] Diagnose and repair Android OAuth sign-in failure and ensure secure session fallback works reliably in source
+- [ ] Verify repaired Android OAuth sign-in on a physical device with a rebuilt APK

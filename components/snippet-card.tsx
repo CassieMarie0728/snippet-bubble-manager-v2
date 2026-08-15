@@ -136,7 +136,7 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
         ) : (
           <View />
         )}
-        <View style={{ flexDirection: "row", gap: 8 }}>
+        <View style={styles.footerActions}>
           <Pressable
             onPress={handleCopy}
             style={({ pressed }) => [
@@ -246,13 +246,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  footerActions: {
+    flexDirection: "row",
+    gap: 14,
+    marginTop: 4,
+  },
   copyBtn: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    gap: 4,
+    gap: 6,
   },
   copyText: {
     color: "#fff",

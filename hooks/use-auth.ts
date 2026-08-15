@@ -46,11 +46,21 @@ export function useAuth(options?: UseAuthOptions) {
         return;
       }
 
-      const cachedUser = await Auth.getUserInfo();
-      if (cachedUser) {
-        setUser(cachedUser);
+      const apiUser = await Api.getMe();
+      if (apiUser) {
+        const userInfo: Auth.User = {
+          id: apiUser.id,
+          openId: apiUser.openId,
+          name: apiUser.name,
+          email: apiUser.email,
+          loginMethod: apiUser.loginMethod,
+          lastSignedIn: new Date(apiUser.lastSignedIn),
+        };
+        setUser(userInfo);
+        await Auth.setUserInfo(userInfo);
       } else {
-        setUser(null);
+        const cachedUser = await Auth.getUserInfo();
+        setUser(cachedUser);
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to fetch user");

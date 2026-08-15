@@ -108,3 +108,8 @@ The remote Gradle compiler successfully built the local floating-bubble module a
 After fixing the native Kotlin compiler errors from build `8b8a0ce5-2d4a-4e6c-b948-5da9f3390ada`, the replacement EAS preview build `2fa6ae93-d69e-4a22-85e5-4aa3e8e71341` finished successfully on 2026-08-15. It used the internal `preview` profile and EAS-managed **Snippet Bubbles Preview** signing credentials. Artifact: <https://expo.dev/artifacts/eas/8RN9pHCyqXDS1HV5ZHDJf7HJIENbQUHTGKvU-ah8jyY.apk>. Dashboard: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/2fa6ae93-d69e-4a22-85e5-4aa3e8e71341>.
 
 The APK now contains the larger overlay-native workspace, 100-item cap, search and Snippets/Memos tabs, inline create/edit flow, monospaced multiline code-friendly editor, and native-to-app reconciliation. Physical Android validation remains open.
+
+
+### Repair Tranche Build Submission Status (2026-08-15)
+
+The local repair tranche passed TypeScript, 158 tests with 1 intentional skip, and lint. The attempted fresh preview APK submission was uploaded to EAS but the CLI stopped before producing a new build record because the Expo account had exhausted its Android build allowance for the current free-plan month; EAS reported that the allowance resets in 16 days. No new repair APK artifact is available yet. The last verified overlay APK remains build `2fa6ae93-d69e-4a22-85e5-4aa3e8e71341` at <https://expo.dev/artifacts/eas/8RN9pHCyqXDS1HV5ZHDJf7HJIENbQUHTGKvU-ah8jyY.apk>. The repair changes are checkpoint-ready, but sign-in and the new overlay polish still require a rebuilt APK for physical-device verification.

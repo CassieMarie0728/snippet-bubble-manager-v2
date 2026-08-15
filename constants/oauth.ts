@@ -77,7 +77,7 @@ export const getRedirectUri = () => {
   if (ReactNative.Platform.OS === "web") {
     return `${getApiBaseUrl()}/api/oauth/callback`;
   } else {
-    return Linking.createURL("/oauth/callback", {
+    return Linking.createURL("oauth/callback", {
       scheme: env.deepLinkScheme,
     });
   }
@@ -127,7 +127,13 @@ export async function getServerLoginUrl(): Promise<string> {
  * @returns Always null, the callback is handled via deep link.
  */
 export async function startOAuthLogin(): Promise<string | null> {
-  const loginUrl = await getServerLoginUrl();
+  let loginUrl: string;
+  try {
+    loginUrl = await getServerLoginUrl();
+  } catch (serverError) {
+    console.warn("[OAuth] Server login URL unavailable; using direct portal URL", serverError);
+    loginUrl = getLoginUrl();
+  }
 
   if (ReactNative.Platform.OS === "web") {
     if (typeof window !== "undefined") window.location.href = loginUrl;
@@ -143,11 +149,17 @@ export async function startOAuthLogin(): Promise<string | null> {
   } catch (sessionError) {
     console.warn("[OAuth] Auth session launch failed; falling back to system browser", sessionError);
     try {
-      await Linking.openURL(loginUrl);
+      await WebBrowser.openBrowserAsync(loginUrl);
       return "opened";
     } catch (browserError) {
-      console.error("[OAuth] System browser fallback failed", browserError);
-      throw new Error("Could not open the secure sign-in flow. Check your internet connection and try again.");
+      console.warn("[OAuth] Custom Tab fallback failed; trying the system URL handler", browserError);
+      try {
+        await Linking.openURL(loginUrl);
+        return "opened";
+      } catch (systemBrowserError) {
+        console.error("[OAuth] System browser fallback failed", systemBrowserError);
+        throw new Error("Could not open the secure sign-in flow. Check your internet connection and try again.");
+      }
     }
   }
 }
