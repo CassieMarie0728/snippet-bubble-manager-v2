@@ -32,6 +32,7 @@ type Action =
   | { type: "UPDATE_SETTINGS"; settings: Partial<AppSettings> }
   | { type: "IMPORT"; snippets: Snippet[] }
   | { type: "RECONCILE"; snippets: Snippet[] }
+  | { type: "APPLY_OVERLAY"; snippets: Snippet[] }
   | { type: "DUPLICATE"; id: string };
 
 function reducer(state: SnippetState, action: Action): SnippetState {
@@ -74,6 +75,14 @@ function reducer(state: SnippetState, action: Action): SnippetState {
       return { ...state, snippets: [...action.snippets, ...state.snippets] };
     case "RECONCILE":
       return { ...state, snippets: action.snippets };
+    case "APPLY_OVERLAY": {
+      const nextById = new Map(state.snippets.map((snippet) => [snippet.id, snippet]));
+      action.snippets.forEach((snippet) => {
+        const existing = nextById.get(snippet.id);
+        nextById.set(snippet.id, existing ? { ...existing, ...snippet } : snippet);
+      });
+      return { ...state, snippets: Array.from(nextById.values()) };
+    }
     case "DUPLICATE": {
       const original = state.snippets.find((s) => s.id === action.id);
       if (!original) return state;
@@ -105,6 +114,7 @@ interface SnippetContextValue {
   updateSettings: (settings: Partial<AppSettings>) => void;
   importSnippets: (snippets: Snippet[]) => void;
   replaceSnippets: (snippets: Snippet[]) => void;
+  applyOverlayChanges: (changes: unknown[]) => void;
   getSnippetById: (id: string) => Snippet | undefined;
   searchSnippets: (query: string) => Snippet[];
   advancedSearch: (options: SearchOptions) => Snippet[];
@@ -211,6 +221,15 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "RECONCILE", snippets });
   }, []);
 
+  const applyOverlayChanges = useCallback((changes: unknown[]) => {
+    const snippets = changes
+      .filter((change): change is { type?: string; snippet?: unknown } => Boolean(change && typeof change === "object"))
+      .filter((change) => change.type === "upsert")
+      .map((change) => normalizeOverlaySnippet(change.snippet, stateRef.current.snippets))
+      .filter((snippet): snippet is Snippet => Boolean(snippet));
+    if (snippets.length > 0) dispatch({ type: "APPLY_OVERLAY", snippets });
+  }, []);
+
   const getSnippetById = useCallback(
     (id: string) => stateRef.current.snippets.find((s) => s.id === id),
     []
@@ -293,6 +312,7 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
     updateSettings,
     importSnippets,
     replaceSnippets,
+    applyOverlayChanges,
     getSnippetById,
     searchSnippets,
     advancedSearch,
@@ -306,6 +326,45 @@ export function SnippetProvider({ children }: { children: React.ReactNode }) {
   };
 
   return <SnippetContext.Provider value={value}>{children}</SnippetContext.Provider>;
+}
+
+export function normalizeOverlaySnippet(value: unknown, existingSnippets: Snippet[]): Snippet | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Record<string, unknown>;
+  const id = typeof candidate.id === "string" && candidate.id.trim() ? candidate.id : null;
+  const code = typeof candidate.code === "string" ? candidate.code : null;
+  if (!id || code === null) return null;
+  const existing = existingSnippets.find((snippet) => snippet.id === id);
+  const now = Date.now();
+  const tags = Array.isArray(candidate.tags)
+    ? candidate.tags.filter((tag): tag is string => typeof tag === "string")
+    : existing?.tags ?? [];
+  const collectionIds = Array.isArray(candidate.collectionIds)
+    ? candidate.collectionIds.filter((collectionId): collectionId is string => typeof collectionId === "string")
+    : existing?.collectionIds;
+  return {
+    ...(existing ?? {
+      id,
+      lastCopiedAt: null,
+      createdAt: now,
+      isFavorite: false,
+      isPinned: false,
+    }),
+    id,
+    title: typeof candidate.title === "string" && candidate.title.trim() ? candidate.title : existing?.title ?? "Quick memo",
+    code,
+    language: typeof candidate.language === "string" && candidate.language.trim() ? candidate.language : existing?.language ?? "Plaintext",
+    description: typeof candidate.description === "string" ? candidate.description : existing?.description ?? "",
+    tags,
+    ...(collectionIds ? { collectionIds } : {}),
+    ...(typeof candidate.categoryId === "string" ? { categoryId: candidate.categoryId } : {}),
+    isFavorite: typeof candidate.isFavorite === "boolean" ? candidate.isFavorite : existing?.isFavorite ?? false,
+    isPinned: typeof candidate.isPinned === "boolean" ? candidate.isPinned : existing?.isPinned ?? false,
+    lastCopiedAt: typeof candidate.lastCopiedAt === "number" ? candidate.lastCopiedAt : existing?.lastCopiedAt ?? null,
+    copyCount: typeof candidate.copyCount === "number" ? candidate.copyCount : existing?.copyCount,
+    createdAt: typeof candidate.createdAt === "number" ? candidate.createdAt : existing?.createdAt ?? now,
+    updatedAt: typeof candidate.updatedAt === "number" ? candidate.updatedAt : now,
+  };
 }
 
 function getSortedInternal(snippets: Snippet[]): Snippet[] {

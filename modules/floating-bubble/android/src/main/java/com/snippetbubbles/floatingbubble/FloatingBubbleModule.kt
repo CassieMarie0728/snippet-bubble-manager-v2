@@ -77,6 +77,13 @@ class FloatingBubbleModule : Module() {
       requireContext().startService(intent)
     }
 
+    AsyncFunction("drainPendingChanges") {
+      val preferences = requireContext().getSharedPreferences(FLOATING_BUBBLE_PREFS, android.content.Context.MODE_PRIVATE)
+      val pending = preferences.getString(FLOATING_BUBBLE_PENDING_CHANGES, "[]") ?: "[]"
+      preferences.edit().putString(FLOATING_BUBBLE_PENDING_CHANGES, "[]").apply()
+      pending
+    }
+
     AsyncFunction("stop") {
       requireContext().stopService(Intent(requireContext(), FloatingBubbleService::class.java))
     }
@@ -84,6 +91,14 @@ class FloatingBubbleModule : Module() {
 
   private fun requireContext() = requireNotNull(appContext.reactContext) {
     "React application context is unavailable"
+  }
+
+  private fun stringArray(value: Any?): JSONArray {
+    val array = JSONArray()
+    (value as? List<*>)?.forEach { item ->
+      if (item != null) array.put(item.toString())
+    }
+    return array
   }
 
   private fun snippetsJson(value: Any?): String {
@@ -96,6 +111,16 @@ class FloatingBubbleModule : Module() {
       objectValue.put("title", source["title"]?.toString() ?: "Untitled snippet")
       objectValue.put("language", source["language"]?.toString() ?: "")
       objectValue.put("code", source["code"]?.toString() ?: "")
+      objectValue.put("description", source["description"]?.toString() ?: "")
+      objectValue.put("tags", stringArray(source["tags"]))
+      objectValue.put("categoryId", source["categoryId"]?.toString() ?: JSONObject.NULL)
+      objectValue.put("collectionIds", stringArray(source["collectionIds"]))
+      objectValue.put("isFavorite", source["isFavorite"] as? Boolean ?: false)
+      objectValue.put("isPinned", source["isPinned"] as? Boolean ?: false)
+      objectValue.put("lastCopiedAt", source["lastCopiedAt"] ?: JSONObject.NULL)
+      objectValue.put("copyCount", source["copyCount"] ?: 0)
+      objectValue.put("createdAt", (source["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis())
+      objectValue.put("updatedAt", (source["updatedAt"] as? Number)?.toLong() ?: System.currentTimeMillis())
       array.put(objectValue)
     }
     return array.toString()

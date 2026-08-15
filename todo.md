@@ -201,3 +201,37 @@
 
 - [x] Investigate the reported failed Android development APK and confirm the applicable EAS testing profile
 - [x] Submit and verify a replacement Android development/testing APK after the reported failure
+
+## Android Floating Workspace Expansion
+
+- [x] Expand the floating bubble into a larger overlay-native workspace instead of launching the full app on tap
+- [x] Support up to 100 overlay notes/snippets with search, list scrolling, and clear item-count behavior
+- [x] Add inline overlay creation and editing for memo/note and code/snippet entries
+- [x] Add compact code-friendly editing with language selection and preserved multiline formatting
+- [x] Synchronize overlay-created and edited snippets with the app’s local snippet store and existing cloud sync queue
+- [ ] Validate the expanded overlay on a physical Android device
+- [x] Produce a fresh EAS preview APK for the expanded overlay
+
+> Design decision: the overlay will use plain multiline text with code-oriented formatting and language metadata rather than heavyweight rich text, keeping it fast, readable, and compatible with existing snippet storage.
+
+> Mobile checkpoint: Android-only native overlay; 48dp touch targets; one-handed thumb-zone actions; bounded 100-item list; offline-first local persistence; no long-list ScrollView or gesture-only controls.
+
+> MFRI: platform clarity 5 + accessibility readiness 4 − interaction complexity 3 − performance risk 2 − offline dependence 2 = 2 (risky). Mitigation: keep the overlay to a bounded 100-item list, use explicit buttons, and make creation/editing a focused single-entry view.
+
+> Overlay flow: bubble tap → expanded workspace; workspace supports Search, Snippets/Memos tabs, + New, row tap → inline editor; Save persists locally and updates the app; minimize returns to bubble; close stops the overlay.
+
+> Editor decision: use a code-friendly multiline editor with monospaced text, language metadata, optional title, and paste/save actions. Full rich-text formatting is intentionally deferred because it would increase overlay complexity and would not map cleanly to the existing code-snippet model.
+
+> References: Android native overlay implementation in modules/floating-bubble/android/src/main/java/com/snippetbubbles/floatingbubble/FloatingBubbleService.kt; JavaScript bridge in modules/floating-bubble/src/FloatingBubble.ts; mobile constraints from /home/ubuntu/skills/mobile-design/SKILL.md.
+
+> Note: the native overlay does not currently have a direct JS callback channel for edits. The implementation will add a durable local handoff file/broadcast contract, then have the React Native controller consume it and enqueue cloud sync changes without storing credentials in the overlay service.
+
+> User testing note: no desktop folder is bound; validation is through the managed project and the physical Android device/EAS APK flow.
+
+> Future polish: consider syntax highlighting, richer formatting, and configurable tab names only after the bounded overlay editor is proven stable on-device.
+
+> Open implementation risk: the current native service is Kotlin View-based, while the app’s authoritative snippet state is React Native/AsyncStorage. Prefer a small file-based handoff plus periodic controller refresh over duplicating the entire sync engine in the native service.
+
+> Security constraint: do not put auth tokens, cloud credentials, or raw account secrets into the native overlay service or its persisted handoff.
+
+> Acceptance criteria: tapping a snippet stays inside the overlay; up to 100 items can be browsed; a user can create and save a memo or code snippet without entering the full app; multiline code remains intact; overlay edits appear in the main app after refresh; minimize/close still work; and the app remains TypeScript/test/lint clean.

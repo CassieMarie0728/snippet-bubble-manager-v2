@@ -91,3 +91,20 @@ The user-authorized overlay/login preview request was submitted to EAS as build 
 The replacement EAS Android preview build completed successfully after the SDK 54 Kotlin correction. Build ID: `9a14df47-dfb5-49bc-8022-1221fb450493`. Status: `FINISHED`. Git checkpoint: `482066384d2de3414455dae2778deb0e5a377aef`. Distribution: internal APK. Artifact: <https://expo.dev/artifacts/eas/4LJmpIUD90803oh_i3JaABqnCbzZbPFu7K9X9KvcVIU.apk>. Dashboard: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/9a14df47-dfb5-49bc-8022-1221fb450493>.
 
 The remote Gradle compiler successfully built the local floating-bubble module after the `AsyncFunction<Boolean>` declarations were corrected for SDK 54. Physical-device validation remains user-facing: install the APK and test overlay permission, drag/collapse/expand behavior, snippet launch, Android sign-in, custom AI language generation, and JSON sharing.
+
+## Android Overlay Workspace Build Record (2026-08-15)
+
+- Initial expanded-overlay preview submission: EAS build `8b8a0ce5-2d4a-4e6c-b948-5da9f3390ada` — failed during `:snippet-bubbles-floating-bubble:compileReleaseKotlin`.
+- Exact compiler findings from the EAS Gradle log: `FloatingBubbleService.kt:154:7 Unresolved reference 'singleLine'`; lines 309, 318, and 328 attempted to assign a `String` to the outer `LinearLayout` variable named `text` because of Kotlin scope shadowing.
+- Corrections applied: replaced `singleLine = true` with `setSingleLine(true)`; renamed the row content layout; used `setText(...)` for nested `TextView` values.
+- JavaScript gates after correction: TypeScript passed; 158 tests passed, 1 skipped; lint passed with zero warnings.
+- Replacement preview submission: EAS build `2fa6ae93-d69e-4a22-85e5-4aa3e8e71341`, profile `preview`, status was `IN_PROGRESS` at the time of this record.
+- EAS status page: https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/2fa6ae93-d69e-4a22-85e5-4aa3e8e71341
+- The sandbox could not run a local Gradle compile because no Android SDK/ANDROID_HOME is installed; EAS remote Gradle compilation is the native validation gate.
+
+
+### Expanded Overlay Preview Build — Corrected and Finished
+
+After fixing the native Kotlin compiler errors from build `8b8a0ce5-2d4a-4e6c-b948-5da9f3390ada`, the replacement EAS preview build `2fa6ae93-d69e-4a22-85e5-4aa3e8e71341` finished successfully on 2026-08-15. It used the internal `preview` profile and EAS-managed **Snippet Bubbles Preview** signing credentials. Artifact: <https://expo.dev/artifacts/eas/8RN9pHCyqXDS1HV5ZHDJf7HJIENbQUHTGKvU-ah8jyY.apk>. Dashboard: <https://expo.dev/accounts/c728/projects/snippet-bubble-manager/builds/2fa6ae93-d69e-4a22-85e5-4aa3e8e71341>.
+
+The APK now contains the larger overlay-native workspace, 100-item cap, search and Snippets/Memos tabs, inline create/edit flow, monospaced multiline code-friendly editor, and native-to-app reconciliation. Physical Android validation remains open.
